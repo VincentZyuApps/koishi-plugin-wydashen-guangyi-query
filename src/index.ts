@@ -2,6 +2,7 @@ import { Context, Schema, h } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
 import path from 'path'
+import fs from 'fs'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -19,6 +20,10 @@ export const Config = Schema.intersect([
       .role('textarea', { rows: [2, 5] })
       .default(path.resolve(__dirname, '../assets/sky_bg.png'))
       .description(`背景图片路径.`),
+    tutorialImagePath: Schema.string()
+      .role('textarea', { rows: [2, 5] })
+      .default(path.resolve(__dirname, '../assets/tutorial.jpg'))
+      .description(`查询光翼使用方法教程图片路径.`),
   }).description('后端设置')
 ])
 
@@ -88,6 +93,30 @@ export function apply(ctx: Context, config: any) {
         }
         
         return `查询失败: ${error instanceof Error ? error.message : String(error)}`
+      }
+    })
+
+  ctx.command('获取id方法')
+    .alias('atw')
+    .alias('awa_tutorial_wing')
+    .action(async ({ session }) => {
+      try {
+        const tutorialImagePath = config.tutorialImagePath || path.resolve(__dirname, '../assets/tutorial.jpg')
+        
+        if (!fs.existsSync(tutorialImagePath)) {
+          return '教程图片不存在，请检查配置路径'
+        }
+
+        // 读取教程图片并转换为 base64
+        const tutorialBuffer = fs.readFileSync(tutorialImagePath)
+        const tutorialBase64 = tutorialBuffer.toString('base64')
+        
+        // 发送教程图片
+        await session.send(`${h.quote(session.messageId)}${h.image(`data:image/jpeg;base64,${tutorialBase64}`)}`)
+        return
+      } catch (error) {
+        ctx.logger.error(`Error sending tutorial image: ${error}`)
+        return `发送教程图片失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })
 }
