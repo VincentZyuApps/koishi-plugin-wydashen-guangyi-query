@@ -1,6 +1,6 @@
 import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
-import { WingTagMap } from './types'
+import { WingMapItem } from './wing_map_manager'
 import fs from 'fs'
 import path from 'path'
 
@@ -22,10 +22,10 @@ interface WingDisplayData extends WingData {
 /**
  * 根据 WingTagMap 获取光翼的显示信息
  */
-function getWingDisplayInfo(wingName: string): { displayName: string; category: string; subCategory: string; index: number } {
-  const found = WingTagMap.findIndex(item => item.光翼名字 === wingName)
+function getWingDisplayInfo(wingName: string, wingTagMap: readonly WingMapItem[]): { displayName: string; category: string; subCategory: string; index: number } {
+  const found = wingTagMap.findIndex(item => item.光翼名字 === wingName)
   if (found !== -1) {
-    const item = WingTagMap[found]
+    const item = wingTagMap[found]
     return {
       displayName: item.光翼名字,
       category: item.一级标签,
@@ -44,17 +44,17 @@ function getWingDisplayInfo(wingName: string): { displayName: string; category: 
 /**
  * 将光翼数据按照 WingTagMap 的顺序排序，并补充缺失的光翼
  */
-function processWingData(wingBuffs: WingData[]): WingDisplayData[] {
+function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem[]): WingDisplayData[] {
   const wingMap = new Map(wingBuffs.map(w => [w.name, w]))
   
   const result: WingDisplayData[] = []
   
   // 按照 WingTagMap 的顺序遍历
-  WingTagMap.forEach((mapItem, index) => {
+  wingTagMap.forEach((mapItem, index) => {
     const wingName = mapItem.光翼名字
     const wingData = wingMap.get(wingName)
     
-    const displayInfo = getWingDisplayInfo(wingName)
+    const displayInfo = getWingDisplayInfo(wingName, wingTagMap)
     
     if (wingData) {
       result.push({
@@ -254,7 +254,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     .wing-name {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: #333;
       margin-bottom: 6px;
@@ -266,14 +266,14 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     .wing-category {
-      font-size: 20px;
+      font-size: 23px;
       color: #667eea;
       font-weight: 600;
       margin-bottom: 4px;
     }
     
     .wing-subcategory {
-      font-size: 20px;
+      font-size: 23px;
       color: #764ba2;
       margin-bottom: 6px;
     }
@@ -334,13 +334,14 @@ export async function renderWingImage(
   ctx: Context,
   roleId: string,
   wingBuffs: WingData[],
+  wingTagMap: readonly WingMapItem[],
   backgroundImagePath?: string
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
   try {
     // 处理光翼数据
-    const processedWings = processWingData(wingBuffs)
+    const processedWings = processWingData(wingBuffs, wingTagMap)
     
     // 读取背景图片并转换为 base64
     let bgBase64: string | undefined

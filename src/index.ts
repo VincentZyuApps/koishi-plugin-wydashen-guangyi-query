@@ -3,6 +3,7 @@ import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
 import path from 'path'
 import fs from 'fs'
+import { WingMapManager } from './wing_map_manager'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -16,6 +17,10 @@ export const Config = Schema.intersect([
       .role('textarea', { rows: [2, 4] })
       .description('后端地址')
       .default('http://sh-aliyun2.vincentzyu233.cn:51024'),
+    wyWingMapUrl: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .description('光翼 ID 映射json地址')
+      .default('https://s.166.net/config/ds_yy_02/ma75_wing_wings.json'),
     backgroundImagePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
       .default(path.resolve(__dirname, '../assets/sky_bg.png'))
@@ -36,6 +41,18 @@ interface WingBuff {
 }
 
 export function apply(ctx: Context, config: any) {
+  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl);
+
+  ctx.on('ready', async () => {
+    await wingMapManager.initialize();
+  });
+
+  ctx.command('刷新光翼')
+    .alias('awa_refresh_guangyi')
+    .action(async () => {
+      return await wingMapManager.refreshWingMap();
+    });
+
   ctx.command('查询光翼 <userId:string>')
     .alias('aqg')
     .alias('awa_query_guangyi')
@@ -79,7 +96,7 @@ export function apply(ctx: Context, config: any) {
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
         // 渲染图片
-        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, config.backgroundImagePath)
+        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath)
 
         // 返回图片
         // return h.image(`data:image/jpeg;base64,${screenshot}`);
