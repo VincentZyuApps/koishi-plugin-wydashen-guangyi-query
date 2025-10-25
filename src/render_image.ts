@@ -299,7 +299,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
 <body>
   <div class="container">
     <div class="header">
-      <div class="title">✨ 光遇光翼查询</div>
+      <div class="title">✨ 网易国服sky光遇光翼查询</div>
       <div class="stats">
         <div class="stat-item">
           <div class="stat-label">总光翼数</div>

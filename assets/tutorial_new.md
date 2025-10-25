@@ -1,0 +1,67 @@
+# ✨ 网易国服 Sky 光遇 - 游戏ID查询方法
+
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+
+## 📱 获取游戏ID的三个步骤
+
+### 第一步：打开游戏设置 ⚙️
+
+<div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px solid rgba(102, 126, 234, 0.3);">
+
+<p style="text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+在游戏内点击右上角的"齿轮图标"（设置按钮）
+</p>
+
+<img src="step1_new.png" alt="步骤1：点击齿轮图标" style="width: 50%; max-width: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; display: block; margin-left: auto; margin-right: auto;">
+
+<p style="color: #667eea; font-size: 16px; font-weight: 600; margin-top: 15px; text-align: center;">
+💡 提示：齿轮图标位于游戏界面的右上角
+</p>
+
+</div>
+
+---
+
+### 第二步：选择"精灵"选项 🎧
+
+<div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px solid rgba(102, 126, 234, 0.3);">
+
+<p style="text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+在设置菜单中，右划选择"精灵"选项
+</p>
+
+<img src="step2_new.png" alt="步骤2：选择精灵" style="width: 50%; max-width: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; display: block; margin-left: auto; margin-right: auto;">
+
+<p style="color: #667eea; font-size: 16px; font-weight: 600; margin-top: 15px; text-align: center;">
+💡 提示：头像是个耳机的那个，不要和音频设置搞混了(
+</p>
+
+</div>
+
+---
+
+### 第三步：查看游戏ID 🔍
+
+<div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px solid rgba(102, 126, 234, 0.3);">
+
+<p style="text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+点击"查询ID"按钮，即可看到你的游戏ID
+</p>
+
+<img src="step3_new.png" alt="步骤3：查询ID" style="width: 50%; max-width: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; display: block; margin-left: auto; margin-right: auto;">
+
+<p style="color: #667eea; font-size: 16px; font-weight: 600; margin-top: 15px; text-align: center;">
+💡 然后长按复制这个ID，用于查询你的光翼收集情况
+</p>
+
+</div>
+
+---
+
+<div style="text-align: center; color: #999; font-size: 14px; margin-top: 40px; padding: 20px;">
+
+✨ 祝你在光遇世界中收集到所有光翼！✨
+
+</div>
+
+</div>

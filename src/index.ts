@@ -27,7 +27,7 @@ export const Config = Schema.intersect([
       .description(`背景图片路径.`),
     tutorialImagePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/tutorial.jpg'))
+      .default(path.resolve(__dirname, '../assets/tutorial_new_20251026.png'))
       .description(`查询光翼使用方法教程图片路径.`),
   }).description('后端设置')
 ])
