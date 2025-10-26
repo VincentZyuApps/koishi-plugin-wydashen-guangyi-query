@@ -11,4 +11,4 @@
 
 ### 获取id方法
 > 返回结果
-![assets/tutorial.jpg](assets/tutorial.jpg)
+![assets/tutorial_new_20251026.png](assets/tutorial_new_20251026.png)
