@@ -2,7 +2,6 @@ import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 import { WingMapItem } from './wing_map_manager'
 import fs from 'fs'
-import path from 'path'
 
 interface WingData {
   name: string
@@ -102,17 +101,24 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   const wingsHtml = wings
     .map((wing, idx) => {
       const statusClass = wing.collected ? 'collected' : 'uncollected'
-      const statusText = wing.collected ? '✓ 已收集' : '未收集'
+      const statusText = wing.collected ? '已收集' : '未收集'
       const depositedText = wing.deposited ? '(已存放)' : ''
       const icon = wing.collected ? '✨' : '❓'
+      const statusIcon = wing.collected ? '✓' : '✗'
+      // 如果没有二级标签，显示横杠占位
+      const subCategoryDisplay = wing.subCategory || '-'
       
       return `
         <div class="wing-card ${statusClass}">
-          <div class="wing-icon">${icon}</div>
+          <div class="wing-icon-status">
+            <span class="icon">${icon}</span>
+            <span class="status-text">${statusText}</span>
+            <span class="status-icon">${statusIcon}</span>
+          </div>
           <div class="wing-name">${wing.name}</div>
           <div class="wing-category">${wing.category}</div>
-          ${wing.subCategory ? `<div class="wing-subcategory">${wing.subCategory}</div>` : ''}
-          <div class="wing-status">${statusText} ${depositedText}</div>
+          ${depositedText ? `<div class="wing-deposited">${depositedText}</div>` : ''}
+          <div class="wing-subcategory">${subCategoryDisplay}</div>
         </div>
       `
     })
@@ -136,7 +142,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     body {
       width: 1200px;
       height: auto;
-      min-height: 800px;
+      min-height: 600px;
       ${bgBase64 
         ? `background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%), 
                        url(data:image/webp;base64,${bgBase64});
@@ -146,8 +152,9 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
         : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`
       }
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
-      padding: 40px;
+      padding: 20px;
       color: #333;
+      line-height: 1.2;
     }
     
     .container {
@@ -158,21 +165,23 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     .header {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 30px;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
       border: 1px solid rgba(255, 255, 255, 0.18);
     }
     
     .title {
-      font-size: 60px;
+      font-size: 72px;
       font-weight: 700;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 15px;
+      line-height: 1.1;
+      text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
     }
     
     .stats {
@@ -183,29 +192,32 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .stat-item {
       background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 15px;
       text-align: center;
       border: 1px solid rgba(102, 126, 234, 0.2);
     }
     
     .stat-label {
-      font-size: 20px;
+      font-size: 24px;
       color: #666;
       margin-bottom: 5px;
+      line-height: 1.2;
+      font-weight: 500;
     }
     
     .stat-value {
-      font-size: 50px;
+      font-size: 60px;
       font-weight: 700;
       color: #667eea;
+      line-height: 1;
     }
     
     .wings-container {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
+      border-radius: 15px;
+      padding: 20px;
       box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
       border: 1px solid rgba(255, 255, 255, 0.18);
     }
@@ -213,14 +225,14 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     .wings-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px 8px;
-      padding: 20px 0;
+      gap: 6px 6px;
+      padding: 10px 0;
     }
     
     .wing-card {
       background: rgba(255, 255, 255, 0.5);
-      border-radius: 9px;
-      padding: 12px 8px;
+      border-radius: 8px;
+      padding: 10px 8px;
       text-align: center;
       border: 2px solid rgba(102, 126, 234, 0.2);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -229,6 +241,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       flex-direction: column;
       justify-content: space-between;
       min-height: 180px;
+      line-height: 1.2;
     }
     
     .wing-card.collected {
@@ -248,51 +261,107 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
     
-    .wing-icon {
-      font-size: 50px;
-      margin-bottom: 13px;
+    .wing-icon-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      padding: 4px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .wing-icon-status .icon {
+      font-size: 40px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .wing-icon-status .status-icon {
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1;
+    }
+    
+    .wing-icon-status .status-text {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .wing-card.collected .wing-icon-status {
+      color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .wing-card.uncollected .wing-icon-status {
+      color: #999;
+      background: rgba(150, 150, 150, 0.08);
     }
     
     .wing-name {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
+      font-size: 22px;
+      font-weight: 700;
+      color: #2c3e50;
       margin-bottom: 6px;
       word-break: break-word;
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
     
     .wing-category {
-      font-size: 23px;
+      font-size: 28px;
       color: #667eea;
-      font-weight: 600;
+      font-weight: 800;
       margin-bottom: 4px;
+      line-height: 1.2;
+      text-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     
     .wing-subcategory {
-      font-size: 23px;
+      font-size: 26px;
       color: #764ba2;
-      margin-bottom: 6px;
-    }
-    
-    .wing-status {
-      font-size: 20px;
-      color: #666;
       font-weight: 600;
+      margin-bottom: 5px;
+      line-height: 1.2;
+      font-style: italic;
+      text-decoration: underline;
+      text-decoration-color: rgba(118, 75, 162, 0.3);
+      text-underline-offset: 3px;
     }
     
-    .wing-card.collected .wing-status {
-      color: #667eea;
+    .wing-deposited {
+      font-size: 18px;
+      color: #ff6b6b;
+      font-weight: 700;
+      margin-top: 3px;
+      line-height: 1;
+      padding: 3px 8px;
+      background: rgba(255, 107, 107, 0.1);
+      border-radius: 4px;
+      display: inline-block;
     }
     
     .role-id {
-      font-size: 20px;
+      font-size: 24px;
       color: #999;
-      margin-top: 15px;
+      margin-top: 12px;
       font-family: 'Courier New', monospace;
+      line-height: 1.2;
+      font-weight: 600;
     }
   </style>
 </head>
