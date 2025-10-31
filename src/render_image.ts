@@ -81,7 +81,7 @@ function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem
 /**
  * 生成光翼查询结果的 HTML
  */
-function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: string, bgOffset?: number): string {
+function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: string, bgOffset?: number, wingMapManager?: any): string {
   // 按分类分组
   const groupedByCategory = new Map<string, Map<string, WingDisplayData[]>>()
   
@@ -115,7 +115,12 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
             <span class="status-text">${statusText}</span>
             <span class="status-icon">${statusIcon}</span>
           </div>
-          <div class="wing-name">${wing.name}</div>
+          <div class="wing-name">
+            ${wing.name}
+            ${wing.name.startsWith('s_') && wingMapManager?.getSpiritName(wing.name)
+              ? `<span class="map-wl-or-spirit-name">【${wingMapManager.getSpiritName(wing.name)}】</span>`
+              : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span>【暂时不知道】</span>'}
+          </div>
           <div class="wing-category">${wing.category}</div>
           ${depositedText ? `<div class="wing-deposited">${depositedText}</div>` : ''}
           <div class="wing-subcategory">${subCategoryDisplay}</div>
@@ -312,9 +317,18 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      gap: 4px;
       line-height: 1.3;
       text-shadow: 0 1px 2px rgba(0,0,0,0.05);
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    
+    .map-wl-or-spirit-name {
+      font-size: 18px;
+      color: #764ba2;
+      font-weight: 500;
+      font-style: italic;
     }
     
     .wing-category {
@@ -404,7 +418,8 @@ export async function renderWingImage(
   roleId: string,
   wingBuffs: WingData[],
   wingTagMap: readonly WingMapItem[],
-  backgroundImagePath?: string
+  backgroundImagePath?: string,
+  wingMapManager?: any // Add the wingMapManager parameter
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -429,7 +444,7 @@ export async function renderWingImage(
     }
     
     // 生成 HTML
-    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset)
+    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager)
     
     // 设置视口
     await browserPage.setViewport({

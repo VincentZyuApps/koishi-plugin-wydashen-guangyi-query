@@ -2,6 +2,7 @@ import { Context } from 'koishi'
 import fs from 'fs/promises'
 import path from 'path'
 import { WingTagMap, ExtraWingTagMap } from './types'
+import { parseXmlFile, extractSpiritNames } from './utils/xml-parser'
 
 export type WingMapItem = {
   "光翼名字": string;
@@ -15,15 +16,28 @@ export class WingMapManager {
   private wingMap: WingMapItem[] = [];
   private readonly wingMapPath: string;
   private fallbackMap: readonly WingMapItem[];
+  private spiritNameMap: Map<string, string> = new Map();
+  private readonly xmlPath: string;
 
-  constructor(private ctx: Context, private wyWingMapUrl: string) {
+  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string) {
     this.wingMapPath = path.resolve(__dirname, WING_MAP_FILE);
     // Combine default and extra maps for the fallback
     this.fallbackMap = [...WingTagMap, ...ExtraWingTagMap];
+    this.xmlPath = skyAppXmlPath;
   }
 
   async initialize(): Promise<void> {
     this.ctx.logger.info('🚀 初始化光翼映射管理器 Initializing WingMapManager...');
+    
+    // 先加载XML中的先祖名称映射
+    try {
+      this.ctx.logger.info('📖 正在加载Sky App XML文件...');
+      const xmlData = await parseXmlFile(this.xmlPath);
+      this.spiritNameMap = extractSpiritNames(xmlData);
+      this.ctx.logger.info(`✅ 成功加载 ${this.spiritNameMap.size} 个先祖名称映射`);
+    } catch (error) {
+      this.ctx.logger.error('❌ 加载Sky App XML文件失败:', error);
+    }
     
     // 检查本地文件是否存在
     try {
@@ -98,5 +112,14 @@ export class WingMapManager {
 
   getWingMap(): readonly WingMapItem[] {
     return this.wingMap;
+  }
+
+  getSpiritName(wingName: string): string | undefined {
+    if (!wingName.startsWith('s_')) {
+      return undefined;
+    }
+
+    const originalName = wingName.substring(2); // Remove 's_' prefix
+    return this.spiritNameMap.get(originalName);
   }
 }

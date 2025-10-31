@@ -29,6 +29,10 @@ export const Config = Schema.intersect([
       .role('textarea', { rows: [2, 5] })
       .default(path.resolve(__dirname, '../assets/tutorial_new_20251026.png'))
       .description(`查询光翼使用方法教程图片路径.`),
+    skyAppXmlFilePath: Schema.string()
+      .role('textarea', { rows: [2, 5] })
+      .default(path.resolve(__dirname, '../assets/0.14.8.xml'))
+      .description(`Sky App导出的 XML 文件路径.`),
   }).description('后端设置')
 ])
 
@@ -41,7 +45,7 @@ interface WingBuff {
 }
 
 export function apply(ctx: Context, config: any) {
-  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl);
+  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath);
 
   ctx.on('ready', async () => {
     await wingMapManager.initialize();
@@ -96,7 +100,7 @@ export function apply(ctx: Context, config: any) {
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
         // 渲染图片
-        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath)
+        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath, wingMapManager)
 
         // 返回图片
         // return h.image(`data:image/jpeg;base64,${screenshot}`);
