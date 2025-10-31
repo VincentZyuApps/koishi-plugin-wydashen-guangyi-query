@@ -100,8 +100,12 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   // 构建 HTML，5 列网格显示光翼
   const wingsHtml = wings
     .map((wing, idx) => {
-      // 判断三种状态：已收集、未收集、已存放
-      const isDeposited = !wing.collected && parseInt(wing.deposit_id) > 0
+      // 判断三种状态：
+      // 1. 已收集 (collected: true)
+      // 2. 已存放 (s_ 开头且未收集 - 先祖光翼已存放)
+      // 3. 未收集 (非 s_ 开头且未收集 - 地图光翼未解锁)
+      const isSpirit = wing.name.startsWith('s_')
+      const isDeposited = isSpirit && !wing.collected
       
       let statusClass: string
       let statusText: string
@@ -115,13 +119,13 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
         icon = '✨'
         statusIcon = '✓'
       } else if (isDeposited) {
-        // 已存放
+        // 已存放（先祖光翼已存放）
         statusClass = 'deposited'
         statusText = '已存放'
         icon = '📦'
         statusIcon = '◐'
       } else {
-        // 未收集（未解锁）
+        // 未收集（地图光翼未解锁）
         statusClass = 'uncollected'
         statusText = '未收集'
         icon = '❓'
