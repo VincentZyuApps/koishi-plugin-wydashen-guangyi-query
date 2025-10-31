@@ -100,11 +100,34 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   // 构建 HTML，5 列网格显示光翼
   const wingsHtml = wings
     .map((wing, idx) => {
-      const statusClass = wing.collected ? 'collected' : 'uncollected'
-      const statusText = wing.collected ? '已收集' : '未收集'
-      const depositedText = wing.deposited ? '(已存放)' : ''
-      const icon = wing.collected ? '✨' : '❓'
-      const statusIcon = wing.collected ? '✓' : '✗'
+      // 判断三种状态：已收集、未收集、已存放
+      const isDeposited = !wing.collected && parseInt(wing.deposit_id) > 0
+      
+      let statusClass: string
+      let statusText: string
+      let icon: string
+      let statusIcon: string
+      
+      if (wing.collected) {
+        // 已收集
+        statusClass = 'collected'
+        statusText = '已收集'
+        icon = '✨'
+        statusIcon = '✓'
+      } else if (isDeposited) {
+        // 已存放
+        statusClass = 'deposited'
+        statusText = '已存放'
+        icon = '📦'
+        statusIcon = '◐'
+      } else {
+        // 未收集（未解锁）
+        statusClass = 'uncollected'
+        statusText = '未收集'
+        icon = '❓'
+        statusIcon = '✗'
+      }
+      
       // 如果没有二级标签，显示横杠占位
       const subCategoryDisplay = wing.subCategory || '-'
       
@@ -122,7 +145,6 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
               : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span>【暂时不知道】</span>'}
           </div>
           <div class="wing-category">${wing.category}</div>
-          ${depositedText ? `<div class="wing-deposited">${depositedText}</div>` : ''}
           <div class="wing-subcategory">${subCategoryDisplay}</div>
         </div>
       `
@@ -253,6 +275,13 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
       border-color: rgba(102, 126, 234, 0.5);
       box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .wing-card.deposited {
+      background: linear-gradient(135deg, rgba(255, 165, 0, 0.12), rgba(255, 140, 0, 0.12));
+      border-color: rgba(255, 165, 0, 0.4);
+      box-shadow: 0 2px 10px rgba(255, 165, 0, 0.15);
+      opacity: 0.85;
     }
     
     .wing-card.uncollected {

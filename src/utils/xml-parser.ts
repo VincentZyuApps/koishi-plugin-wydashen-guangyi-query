@@ -19,10 +19,13 @@ export function extractSpiritNames(xmlData: any): Map<string, string> {
   // Find all string entries that start with "name_" and store their Chinese translations
   xmlData.resources.string.forEach((entry: any) => {
     if (entry?.$?.name?.startsWith('name_')) {
+      // 提取基础名称（去掉name_前缀）
       const englishName = entry.$.name.replace('name_', '');
       const chineseName = entry._;
       if (englishName && chineseName) {
-        spiritNameMap.set(englishName, chineseName);
+        // 存储不带数字后缀的基础名称
+        const baseEnglishName = englishName.replace(/_\d+$/, '');
+        spiritNameMap.set(baseEnglishName, chineseName);
       }
     }
   });

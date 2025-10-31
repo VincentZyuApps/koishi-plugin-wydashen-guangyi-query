@@ -114,12 +114,27 @@ export class WingMapManager {
     return this.wingMap;
   }
 
-  getSpiritName(wingName: string): string | undefined {
+  private extractBaseSpiritName(wingName: string): string | undefined {
+    // 必须以s_开头
     if (!wingName.startsWith('s_')) {
       return undefined;
     }
 
-    const originalName = wingName.substring(2); // Remove 's_' prefix
-    return this.spiritNameMap.get(originalName);
+    // 移除s_前缀
+    let baseName = wingName.substring(2);
+    
+    // 移除可能存在的数字后缀（比如 _01, _02 等）
+    baseName = baseName.replace(/_\d+$/, '');
+    
+    return baseName;
+  }
+
+  getSpiritName(wingName: string): string | undefined {
+    const baseName = this.extractBaseSpiritName(wingName);
+    if (!baseName) {
+      return undefined;
+    }
+
+    return this.spiritNameMap.get(baseName);
   }
 }

@@ -21,6 +21,9 @@ export const Config = Schema.intersect([
       .role('textarea', { rows: [2, 4] })
       .description('光翼 ID 映射json地址')
       .default('https://s.166.net/config/ds_yy_02/ma75_wing_wings.json'),
+  }).description('后端设置'),
+  
+  Schema.object({
     backgroundImagePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
       .default(path.resolve(__dirname, '../assets/sky_bg.png'))
@@ -33,7 +36,14 @@ export const Config = Schema.intersect([
       .role('textarea', { rows: [2, 5] })
       .default(path.resolve(__dirname, '../assets/0.14.8.xml'))
       .description(`Sky App导出的 XML 文件路径.`),
-  }).description('后端设置')
+  }).description('路径设置'),
+
+  Schema.object({
+    verboseConsoleLog: Schema.boolean()
+      .default(false)
+      .description('是否启用详细的控制台日志输出。启用后，插件将在控制台输出更多调试和运行时信息，有助于问题排查。'),
+  }).description('debug settings')
+
 ])
 
 interface WingBuff {
