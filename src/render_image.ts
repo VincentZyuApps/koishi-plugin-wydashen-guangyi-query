@@ -16,6 +16,7 @@ interface WingDisplayData extends WingData {
   category: string
   subCategory: string
   index: number
+  isFromAPI: boolean  // 标记是否来自API返回
 }
 
 /**
@@ -56,13 +57,15 @@ function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem
     const displayInfo = getWingDisplayInfo(wingName, wingTagMap)
     
     if (wingData) {
+      // API返回的数据
       result.push({
         ...wingData,
         ...displayInfo,
-        index
+        index,
+        isFromAPI: true  // 来自API
       })
     } else {
-      // 未收集的光翼
+      // JSON有但API没返回的光翼
       result.push({
         name: wingName,
         collected: false,
@@ -70,7 +73,8 @@ function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem
         last_conversion: 0,
         deposit_id: '',
         ...displayInfo,
-        index
+        index,
+        isFromAPI: false  // 不来自API
       })
     }
   })
@@ -100,12 +104,13 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   // 构建 HTML，5 列网格显示光翼
   const wingsHtml = wings
     .map((wing, idx) => {
-      // 判断三种状态：
-      // 1. 已收集 (collected: true)
-      // 2. 已存放 (s_ 开头且未收集 - 先祖光翼已存放)
-      // 3. 未收集 (非 s_ 开头且未收集 - 地图光翼未解锁)
+      // 判断四种状态：
+      // 1. 已收集（在斗篷上）: API返回 + collected: true
+      // 2. 已存放（不在斗篷上）: API返回 + s_开头 + collected: false
+      // 3. 未兑换（永久翼未拿到）: JSON有但API没返回 + s_开头
+      // 4. 未收集（地图光翼未解锁）: JSON有但API没返回 + 非s_开头
+      
       const isSpirit = wing.name.startsWith('s_')
-      const isDeposited = isSpirit && !wing.collected
       
       let statusClass: string
       let statusText: string
@@ -113,19 +118,25 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       let statusIcon: string
       
       if (wing.collected) {
-        // 已收集
+        // 已收集（在斗篷上）
         statusClass = 'collected'
         statusText = '已收集'
         icon = '✨'
         statusIcon = '✓'
-      } else if (isDeposited) {
-        // 已存放（先祖光翼已存放）
+      } else if (wing.isFromAPI && isSpirit) {
+        // 已存放（不在斗篷上）- API返回了但未collected的永久翼
         statusClass = 'deposited'
         statusText = '已存放'
         icon = '📦'
         statusIcon = '◐'
+      } else if (!wing.isFromAPI && isSpirit) {
+        // 未兑换（永久翼未拿到）- API没返回的永久翼
+        statusClass = 'not-redeemed'
+        statusText = '未兑换'
+        icon = '🔒'
+        statusIcon = '⊗'
       } else {
-        // 未收集（地图光翼未解锁）
+        // 未收集（地图光翼未解锁）- API没返回的地图光翼
         statusClass = 'uncollected'
         statusText = '未收集'
         icon = '❓'
@@ -157,8 +168,16 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   
   const totalWings = wings.length
   const collectedWings = wings.filter(w => w.collected).length
-  // 已存放 = s_ 开头且未收集（先祖光翼已存放）
-  const depositedWings = wings.filter(w => w.name.startsWith('s_') && !w.collected).length
+  
+  // 已存放 = API返回 + s_开头 + 未收集
+  const depositedWings = wings.filter(w => 
+    w.isFromAPI && w.name.startsWith('s_') && !w.collected
+  ).length
+  
+  // 未兑换 = API未返回 + s_开头
+  const notRedeemedWings = wings.filter(w => 
+    !w.isFromAPI && w.name.startsWith('s_')
+  ).length
   
   return `<!DOCTYPE html>
 <html>
@@ -218,8 +237,8 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
     }
     
     .stat-item {
@@ -287,6 +306,13 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       border-color: rgba(255, 165, 0, 0.4);
       box-shadow: 0 2px 10px rgba(255, 165, 0, 0.15);
       opacity: 0.85;
+    }
+    
+    .wing-card.not-redeemed {
+      background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(123, 31, 162, 0.1));
+      border-color: rgba(156, 39, 176, 0.35);
+      box-shadow: 0 1px 8px rgba(156, 39, 176, 0.12);
+      opacity: 0.75;
     }
     
     .wing-card.uncollected {
@@ -429,6 +455,10 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
         <div class="stat-item">
           <div class="stat-label">已存放</div>
           <div class="stat-value">${depositedWings}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">未兑换</div>
+          <div class="stat-value">${notRedeemedWings}</div>
         </div>
       </div>
       <div class="role-id">角色ID: ${roleId}</div>

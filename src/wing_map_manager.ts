@@ -42,14 +42,17 @@ export class WingMapManager {
     // 检查本地文件是否存在
     try {
       await fs.access(this.wingMapPath);
-      // 文件存在，加载本地数据
+      // 文件存在，先加载本地数据作为备份
       this.ctx.logger.info('📂 发现本地光翼映射文件 Local wing map file found, loading...');
       await this.loadWingMap();
       
-      // 如果加载后仍然为空（文件损坏或格式错误），则尝试刷新
-      if (this.wingMap.length === 0) {
-        this.ctx.logger.warn('⚠️ 本地光翼映射文件无效 Local file invalid, refreshing from remote...');
-        await this.refreshWingMap();
+      // 尝试从远程刷新，检查是否有更新
+      this.ctx.logger.info('🔄 检查远程更新 Checking for remote updates...');
+      const refreshResult = await this.refreshWingMap();
+      
+      // 如果刷新失败但本地有数据，继续使用本地数据
+      if (refreshResult.startsWith('❌') && this.wingMap.length > 0) {
+        this.ctx.logger.warn('⚠️ 远程更新失败，继续使用本地缓存 Remote update failed, using local cache');
       }
     } catch (error) {
       // 文件不存在，直接从远程获取

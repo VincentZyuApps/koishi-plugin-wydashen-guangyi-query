@@ -77,7 +77,7 @@ export function apply(ctx: Context, config: any) {
         return;
       }
 
-      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}正在查询，请稍候...`);
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询，请稍候...`);
 
       try {
         // 调用后端 API 查询光翼数据
@@ -89,13 +89,15 @@ export function apply(ctx: Context, config: any) {
         const response = await ctx.http.get(apiUrl)
 
         if (!response.success) {
-          return `查询失败: ${response.result || '未知错误'}`
+          await session.send(`${h.quote(session.messageId)}查询失败: ${response.result || '未知错误'}`)
+          return;
         }
 
         // 解析响应
         const responseData = response.data
         if (!responseData || !responseData.result) {
-          return '获取数据格式错误'
+          await session.send(`${h.quote(session.messageId)}获取数据格式错误`)
+          return;
         }
 
         // result 字段是 JSON 字符串，需要解析
@@ -104,11 +106,13 @@ export function apply(ctx: Context, config: any) {
           wingData = JSON.parse(responseData.result)
         } catch (e) {
           ctx.logger.error(`Failed to parse wing data: ${e}`)
-          return '光翼数据解析失败'
+          await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
+          return;
         }
 
         if (!wingData.wing_buffs || !Array.isArray(wingData.wing_buffs)) {
-          return '光翼数据格式错误'
+          await session.send(`${h.quote(session.messageId)}光翼数据格式错误`)
+          return;
         }
 
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
@@ -124,10 +128,12 @@ export function apply(ctx: Context, config: any) {
         ctx.logger.error(`Error querying wings: ${error}`)
         
         if (error instanceof Error && error.message.includes('404')) {
-          return `角色ID ${userId} 未找到，请检查ID是否正确`
+          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          return;
         }
-        
-        return `查询失败: ${error instanceof Error ? error.message : String(error)}`
+
+        await session.send(`${h.quote(session.messageId)}查询失败: ${error instanceof Error ? error.message : String(error)}`);
+        return;
       } finally {
         await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
       }
