@@ -4,6 +4,7 @@ import { renderWingImage } from './render_image'
 import path from 'path'
 import fs from 'fs'
 import { WingMapManager } from './wing_map_manager'
+import { findPackageJSON } from 'module'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -72,8 +73,11 @@ export function apply(ctx: Context, config: any) {
     .alias('awa_query_guangyi')
     .action(async ({ session }, userId) => {
       if (!userId) {
-        return '请提供用户ID，用法: 查询光翼 <角色ID>'
+        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼 <角色ID>`)
+        return;
       }
+
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}正在查询，请稍候...`);
 
       try {
         // 调用后端 API 查询光翼数据
@@ -124,6 +128,8 @@ export function apply(ctx: Context, config: any) {
         }
         
         return `查询失败: ${error instanceof Error ? error.message : String(error)}`
+      } finally {
+        await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
       }
     })
 

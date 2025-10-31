@@ -157,7 +157,8 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
   
   const totalWings = wings.length
   const collectedWings = wings.filter(w => w.collected).length
-  const depletedWings = wings.filter(w => w.deposited).length
+  // 已存放 = s_ 开头且未收集（先祖光翼已存放）
+  const depositedWings = wings.filter(w => w.name.startsWith('s_') && !w.collected).length
   
   return `<!DOCTYPE html>
 <html>
@@ -427,7 +428,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
         </div>
         <div class="stat-item">
           <div class="stat-label">已存放</div>
-          <div class="stat-value">${depletedWings}</div>
+          <div class="stat-value">${depositedWings}</div>
         </div>
       </div>
       <div class="role-id">角色ID: ${roleId}</div>
