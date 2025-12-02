@@ -6,7 +6,6 @@ import { generateWingForward } from './gen_forward'
 import path from 'path'
 import fs from 'fs'
 import { WingMapManager } from './wing_map_manager'
-import { deprecate } from 'util'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -57,7 +56,15 @@ export const Config = Schema.intersect([
   Schema.object({
     separateByCategory: Schema.boolean()
       .default(true)
-      .description('在生成的图片中，是否按分类分开 渲染不同的光翼<br>(遇境 → 云巢 → 晨岛 → 云野 → 雨林 → 霞谷 → 暮土 → 禁阁 → 暴风眼 → <br>普通永久 → 复刻永久 → 破晓季)')
+      .description('在生成的图片中，是否按分类分开 渲染不同的光翼<br>(遇境 → 云巢 → 晨岛 → 云野 → 雨林 → 霞谷 → 暮土 → 禁阁 → 暴风眼 → <br>普通永久 → 复刻永久 → 破晓季)'),
+    containerWidth: Schema.number()
+      .default(1300)
+      .min(0).max(3000)
+      .description('图片容器的宽度，单位为像素'),
+    viewportWidth: Schema.number()
+      .default(1500)
+      .min(0).max(3000)
+      .description('视口宽度，单位为像素')
   }).description('图片渲染设置'),
 
   Schema.object({
@@ -151,7 +158,11 @@ export function apply(ctx: Context, config: any) {
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
         // 渲染图片
-        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath, wingMapManager, config.separateByCategory)
+        const screenshot = await renderWingImage(
+          ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), 
+          config.backgroundImagePath, wingMapManager, 
+          config.separateByCategory, config.containerWidth, config.viewportWidth
+        )
 
         // 返回图片
         // return h.image(`data:image/jpeg;base64,${screenshot}`);

@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wydashen-guangyi-query",
   "description": "查询光遇国服光翼获取情况",
-  "version": "0.3.0-alpha.2",
+  "version": "0.3.0-alpha.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

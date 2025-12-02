@@ -144,7 +144,11 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
 /**
  * 生成光翼查询结果的 HTML
  */
-function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: string, bgOffset?: number, wingMapManager?: any, separateByCategory: boolean = false): string {
+function generateWingHtml(
+  roleId: string, wings: WingDisplayData[], 
+  bgBase64?: string, bgOffset?: number, wingMapManager?: any, 
+  separateByCategory: boolean = false, containerWidth: number = 1300, viewportWidth: number = 1500
+): string {
   // 按分类分组
   const groupedByCategory = new Map<string, WingDisplayData[]>()
   
@@ -231,7 +235,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     body {
-      width: 1500px;
+      width: ${viewportWidth}px;
       height: auto;
       min-height: 600px;
       ${bgBase64 
@@ -249,7 +253,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     .container {
-      max-width: 1300px;
+      max-width: ${containerWidth}px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.67);
       backdrop-filter: blur(20px);
@@ -640,7 +644,9 @@ export async function renderWingImage(
   wingTagMap: readonly WingMapItem[],
   backgroundImagePath?: string,
   wingMapManager?: any,
-  separateByCategory: boolean = false
+  separateByCategory: boolean = false,
+  containerWidth: number = 1300,
+  viewportWidth: number = 1500
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -665,11 +671,11 @@ export async function renderWingImage(
     }
     
     // 生成 HTML
-    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory)
+    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory, containerWidth, viewportWidth)
     
     // 设置视口
     await browserPage.setViewport({
-      width: 1500,
+      width: viewportWidth,
       height: 800,
       deviceScaleFactor: 1,
     })
@@ -687,7 +693,7 @@ export async function renderWingImage(
     
     // 重新设置视口以适应内容
     await browserPage.setViewport({
-      width: 1500,
+      width: viewportWidth,
       height: contentHeight,
       deviceScaleFactor: 1,
     })
