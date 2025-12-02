@@ -83,88 +83,128 @@ function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem
 }
 
 /**
+ * 生成单个光翼卡片的 HTML
+ */
+function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): string {
+  const isSpirit = wing.name.startsWith('s_')
+  
+  let statusClass: string
+  let statusText: string
+  let icon: string
+  let statusIcon: string
+  
+  if (wing.collected) {
+    // 已收集（在斗篷上）
+    statusClass = 'collected'
+    statusText = '已收集'
+    icon = '✨'
+    statusIcon = '✓'
+  } else if (wing.isFromAPI && isSpirit) {
+    // 已存放（不在斗篷上）- API返回了但未collected的永久翼
+    statusClass = 'deposited'
+    statusText = '已存放'
+    icon = '📦'
+    statusIcon = '◐'
+  } else if (!wing.isFromAPI && isSpirit) {
+    // 未兑换（永久翼未拿到）- API没返回的永久翼
+    statusClass = 'not-redeemed'
+    statusText = '未兑换'
+    icon = '🔒'
+    statusIcon = '⊗'
+  } else {
+    // 未收集（地图光翼未解锁）- API没返回的地图光翼
+    statusClass = 'uncollected'
+    statusText = '未收集'
+    icon = '❓'
+    statusIcon = '✗'
+  }
+  
+  // 如果没有二级标签，显示横杠占位
+  const subCategoryDisplay = wing.subCategory || '-'
+  
+  return `
+    <div class="wing-card ${statusClass}">
+      <div class="wing-icon-status">
+        <span class="icon">${icon}</span>
+        <span class="status-text">${statusText}</span>
+        <span class="status-icon">${statusIcon}</span>
+      </div>
+      <div class="wing-name">
+        ${wing.name}
+        ${wing.name.startsWith('s_') && wingMapManager?.getSpiritName(wing.name)
+          ? `<span class="map-wl-or-spirit-name">【${wingMapManager.getSpiritName(wing.name)}】</span>`
+          : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span>【暂时不知道】</span>'}
+      </div>
+      <div class="wing-category">${wing.category}</div>
+      <div class="wing-subcategory">${subCategoryDisplay}</div>
+    </div>
+  `
+}
+
+/**
  * 生成光翼查询结果的 HTML
  */
-function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: string, bgOffset?: number, wingMapManager?: any): string {
+function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: string, bgOffset?: number, wingMapManager?: any, separateByCategory: boolean = false): string {
   // 按分类分组
-  const groupedByCategory = new Map<string, Map<string, WingDisplayData[]>>()
+  const groupedByCategory = new Map<string, WingDisplayData[]>()
   
   wings.forEach(wing => {
     if (!groupedByCategory.has(wing.category)) {
-      groupedByCategory.set(wing.category, new Map())
+      groupedByCategory.set(wing.category, [])
     }
-    const catMap = groupedByCategory.get(wing.category)!
-    const subCat = wing.subCategory || '其他'
-    if (!catMap.has(subCat)) {
-      catMap.set(subCat, [])
-    }
-    catMap.get(subCat)!.push(wing)
+    groupedByCategory.get(wing.category)!.push(wing)
   })
   
-  // 构建 HTML，5 列网格显示光翼
-  const wingsHtml = wings
-    .map((wing, idx) => {
-      // 判断四种状态：
-      // 1. 已收集（在斗篷上）: API返回 + collected: true
-      // 2. 已存放（不在斗篷上）: API返回 + s_开头 + collected: false
-      // 3. 未兑换（永久翼未拿到）: JSON有但API没返回 + s_开头
-      // 4. 未收集（地图光翼未解锁）: JSON有但API没返回 + 非s_开头
-      
-      const isSpirit = wing.name.startsWith('s_')
-      
-      let statusClass: string
-      let statusText: string
-      let icon: string
-      let statusIcon: string
-      
-      if (wing.collected) {
-        // 已收集（在斗篷上）
-        statusClass = 'collected'
-        statusText = '已收集'
-        icon = '✨'
-        statusIcon = '✓'
-      } else if (wing.isFromAPI && isSpirit) {
-        // 已存放（不在斗篷上）- API返回了但未collected的永久翼
-        statusClass = 'deposited'
-        statusText = '已存放'
-        icon = '📦'
-        statusIcon = '◐'
-      } else if (!wing.isFromAPI && isSpirit) {
-        // 未兑换（永久翼未拿到）- API没返回的永久翼
-        statusClass = 'not-redeemed'
-        statusText = '未兑换'
-        icon = '🔒'
-        statusIcon = '⊗'
-      } else {
-        // 未收集（地图光翼未解锁）- API没返回的地图光翼
-        statusClass = 'uncollected'
-        statusText = '未收集'
-        icon = '❓'
-        statusIcon = '✗'
+  // 定义分类的顺序
+  const categoryOrder = [
+    '遇境', '云巢', '晨岛', '云野', '雨林', '霞谷', '暮土', '禁阁', '暴风眼',
+    '普通永久', '复刻永久', '破晓季'
+  ]
+  
+  let wingsHtml = ''
+  
+  if (separateByCategory) {
+    // 按分类顺序排序
+    const sortedCategories: [string, WingDisplayData[]][] = []
+    
+    // 先添加已定义顺序的分类
+    for (const category of categoryOrder) {
+      if (groupedByCategory.has(category)) {
+        sortedCategories.push([category, groupedByCategory.get(category)!])
       }
+    }
+    
+    // 再添加未在顺序中定义的分类（以防有新分类）
+    for (const [category, categoryWings] of groupedByCategory) {
+      if (!categoryOrder.includes(category)) {
+        sortedCategories.push([category, categoryWings])
+      }
+    }
+    
+    // 为每个分类生成 HTML
+    for (const [category, categoryWings] of sortedCategories) {
+      const categoryCollected = categoryWings.filter(w => w.collected).length
+      const categoryTotal = categoryWings.length
       
-      // 如果没有二级标签，显示横杠占位
-      const subCategoryDisplay = wing.subCategory || '-'
-      
-      return `
-        <div class="wing-card ${statusClass}">
-          <div class="wing-icon-status">
-            <span class="icon">${icon}</span>
-            <span class="status-text">${statusText}</span>
-            <span class="status-icon">${statusIcon}</span>
+      // 添加分类标题
+      wingsHtml += `
+        <div class="category-header">
+          <div class="category-title">🏷️ ${category}</div>
+          <div class="category-stats">
+            总数: ${categoryTotal} | 已收集: ${categoryCollected} | 进度: ${((categoryCollected / categoryTotal) * 100).toFixed(1)}%
           </div>
-          <div class="wing-name">
-            ${wing.name}
-            ${wing.name.startsWith('s_') && wingMapManager?.getSpiritName(wing.name)
-              ? `<span class="map-wl-or-spirit-name">【${wingMapManager.getSpiritName(wing.name)}】</span>`
-              : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span>【暂时不知道】</span>'}
-          </div>
-          <div class="wing-category">${wing.category}</div>
-          <div class="wing-subcategory">${subCategoryDisplay}</div>
         </div>
       `
-    })
-    .join('')
+      
+      // 添加该分类的光翼
+      categoryWings.forEach((wing) => {
+        wingsHtml += generateWingCardHtml(wing, wingMapManager)
+      })
+    }
+  } else {
+    // 不分类，直接显示所有光翼
+    wingsHtml = wings.map(wing => generateWingCardHtml(wing, wingMapManager)).join('')
+  }
   
   const totalWings = wings.length
   const collectedWings = wings.filter(w => w.collected).length
@@ -278,6 +318,35 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       grid-template-columns: repeat(5, 1fr);
       gap: 6px 6px;
       padding: 10px 0;
+    }
+    
+    .category-header {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+      border-radius: 10px;
+      padding: 12px 20px;
+      margin: 10px 0 5px 0;
+      border: 2px solid rgba(102, 126, 234, 0.4);
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.15);
+    }
+    
+    .category-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #667eea;
+      margin-bottom: 5px;
+      text-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .category-stats {
+      font-size: 20px;
+      color: #764ba2;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     
     .wing-card {
@@ -483,7 +552,8 @@ export async function renderWingImage(
   wingBuffs: WingData[],
   wingTagMap: readonly WingMapItem[],
   backgroundImagePath?: string,
-  wingMapManager?: any // Add the wingMapManager parameter
+  wingMapManager?: any,
+  separateByCategory: boolean = false
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -508,7 +578,7 @@ export async function renderWingImage(
     }
     
     // 生成 HTML
-    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager)
+    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory)
     
     // 设置视口
     await browserPage.setViewport({

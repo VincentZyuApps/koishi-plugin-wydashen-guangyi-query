@@ -1,10 +1,12 @@
 import { Context, Schema, h } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
+import { generateWingText } from './gen_text'
+import { generateWingForward } from './gen_forward'
 import path from 'path'
 import fs from 'fs'
 import { WingMapManager } from './wing_map_manager'
-import { findPackageJSON } from 'module'
+import { deprecate } from 'util'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -40,6 +42,35 @@ export const Config = Schema.intersect([
   }).description('路径设置'),
 
   Schema.object({
+    enableImageCommand: Schema.boolean()
+      .default(true)
+      .description('注册 渲染图片的指令'),
+    enableTextCommand: Schema.boolean()
+      .default(false)
+      .disabled()
+      .description('注册 发送文字的指令<em>(东西太多了 onebot一条发不完，先用合并转发吧)</em>'),
+    enableForwardCommand: Schema.boolean()
+      .default(true)
+      .description('注册 发送合并转发的指令<em>(只适用于onebot平台)</em>')
+  }).description('指令设置'),
+
+  Schema.object({
+    separateByCategory: Schema.boolean()
+      .default(true)
+      .description('在生成的图片中，是否按分类分开 渲染不同的光翼<br>(遇境 → 云巢 → 晨岛 → 云野 → 雨林 → 霞谷 → 暮土 → 禁阁 → 暴风眼 → <br>普通永久 → 复刻永久 → 破晓季)')
+  }).description('图片渲染设置'),
+
+  Schema.object({
+    enableRustBackend: Schema.boolean()
+      .default(false)
+      .description('是否启用 Rust 后端。启用后，插件将使用 Rust 实现的后端服务，可能带来性能提升。'),
+    rustBackendUrl: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .description('Rust 后端地址')
+      .default('http://sh-aliyun2.vincentzyu233.cn:51127'),
+  }).description('Rust 后端设置'),
+
+  Schema.object({
     verboseConsoleLog: Schema.boolean()
       .default(false)
       .description('是否启用详细的控制台日志输出。启用后，插件将在控制台输出更多调试和运行时信息，有助于问题排查。'),
@@ -68,7 +99,9 @@ export function apply(ctx: Context, config: any) {
       return await wingMapManager.refreshWingMap();
     });
 
-  ctx.command('查询光翼 <userId:string>')
+  if ( config.enableImageCommand )
+  ctx.command('查询光翼-image <userId:string>')
+    .alias('查询光翼')
     .alias('aqg')
     .alias('awa_query_guangyi')
     .action(async ({ session }, userId) => {
@@ -118,7 +151,7 @@ export function apply(ctx: Context, config: any) {
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
         // 渲染图片
-        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath, wingMapManager)
+        const screenshot = await renderWingImage(ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), config.backgroundImagePath, wingMapManager, config.separateByCategory)
 
         // 返回图片
         // return h.image(`data:image/jpeg;base64,${screenshot}`);
@@ -137,6 +170,165 @@ export function apply(ctx: Context, config: any) {
       } finally {
         await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
       }
+    })
+
+  // temporarily deprecate
+  if ( config.enableTextCommand )
+  ctx.command('查询光翼-text <userId:string>')
+    .alias('aqgt')
+    .alias('awa_query_guangyi_text')
+    .action ( async ( {session}, userId ) => {
+      if (!userId) {
+        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-text <角色ID>`)
+        return;
+      }
+
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询，请稍候...`);
+
+      try {
+        // 调用后端 API 查询光翼数据
+        const backendUrl = config.backendUrl || 'http://sh-aliyun2.vincentzyu233.cn:51024'
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+
+        ctx.logger.debug(`Querying wing data from: ${apiUrl}`)
+
+        const response = await ctx.http.get(apiUrl)
+
+        if (!response.success) {
+          await session.send(`${h.quote(session.messageId)}查询失败: ${response.result || '未知错误'}`)
+          return;
+        }
+
+        // 解析响应
+        const responseData = response.data
+        if (!responseData || !responseData.result) {
+          await session.send(`${h.quote(session.messageId)}获取数据格式错误`)
+          return;
+        }
+
+        // result 字段是 JSON 字符串，需要解析
+        let wingData
+        try {
+          wingData = JSON.parse(responseData.result)
+        } catch (e) {
+          ctx.logger.error(`Failed to parse wing data: ${e}`)
+          await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
+          return;
+        }
+
+        if (!wingData.wing_buffs || !Array.isArray(wingData.wing_buffs)) {
+          await session.send(`${h.quote(session.messageId)}光翼数据格式错误`)
+          return;
+        }
+
+        ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+
+        // 生成文本
+        const textResult = generateWingText(userId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
+
+        // 返回文本
+        await session.send(`${h.quote(session.messageId)}${textResult.slice(0,1000)}`);
+        return;
+      } catch (error) {
+        ctx.logger.error(`Error querying wings: ${error}`)
+        
+        if (error instanceof Error && error.message.includes('404')) {
+          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          return;
+        }
+
+        await session.send(`${h.quote(session.messageId)}查询失败: ${error instanceof Error ? error.message : String(error)}`);
+        return;
+      } finally {
+        await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
+      }
+    })
+  
+  if ( config.enableForwardCommand )
+  ctx.command('查询光翼-forward <userId:string>')
+    .alias('aqgf')
+    .alias('awa_query_guangyi_forward')
+    .action(async ( {session}, userId ) => {
+      if (!userId) {
+        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-forward <角色ID>`)
+        return;
+      }
+      if ( session.platform !== 'onebot' ){
+        await session.send(`${h.quote(session.messageId)}该命令仅支持OneBot平台`)
+        return;
+      }
+
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询，请稍候...`);
+
+      try {
+        // 调用后端 API 查询光翼数据
+        const backendUrl = config.backendUrl || 'http://sh-aliyun2.vincentzyu233.cn:51024'
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+
+        ctx.logger.debug(`Querying wing data from: ${apiUrl}`)
+
+        const response = await ctx.http.get(apiUrl)
+
+        if (!response.success) {
+          await session.send(`${h.quote(session.messageId)}查询失败: ${response.result || '未知错误'}`)
+          return;
+        }
+
+        // 解析响应
+        const responseData = response.data
+        if (!responseData || !responseData.result) {
+          await session.send(`${h.quote(session.messageId)}获取数据格式错误`)
+          return;
+        }
+
+        // result 字段是 JSON 字符串，需要解析
+        let wingData
+        try {
+          wingData = JSON.parse(responseData.result)
+        } catch (e) {
+          ctx.logger.error(`Failed to parse wing data: ${e}`)
+          await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
+          return;
+        }
+
+        if (!wingData.wing_buffs || !Array.isArray(wingData.wing_buffs)) {
+          await session.send(`${h.quote(session.messageId)}光翼数据格式错误`)
+          return;
+        }
+
+        ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+
+        // 生成合并转发消息
+        const forwardMessage = generateWingForward(userId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
+
+        // 返回合并转发消息
+        await session.send(h.unescape(forwardMessage));
+        return;
+      } catch (error) {
+        ctx.logger.error(`Error querying wings: ${error}`)
+        
+        if (error instanceof Error && error.message.includes('404')) {
+          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          return;
+        }
+
+        await session.send(`${h.quote(session.messageId)}查询失败: ${error instanceof Error ? error.message : String(error)}`);
+        return;
+      } finally {
+        await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
+      }
+    })
+
+  if ( config.enableRustBackend )
+  ctx.command('查询光翼-rust <userId:string>')
+    .alias('aqgrs')
+    .alias('awa_query')
+    .action(async ( {session}, userId ) => {
+      if (!userId) {
+        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼 <角色ID>`)
+        return;
+      }
+      await session.send( `${h.quote(session.messageId)}${h.image(`${config.rustBackendUrl}/queryGuangyiRust?id=${userId}&type=image`)}` )
     })
 
   ctx.command('获取id方法')
