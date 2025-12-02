@@ -15,3 +15,8 @@ export const ExtraWingTagMap = [
   {"光翼名字":"l_CandleSpace_0","一级标签":"遇境","二级标签":"小黑屋"},
   {"光翼名字":"l_SunsetEnd_1","一级标签":"霞谷","二级标签":"旧版终点"},
 ] as const;
+
+export const IMAGE_STYLES = {
+  THICK_WHITE_BACKGROUND: '厚实白色背景',
+  SEMI_TRANSPARENT_FROSTED_GLASS: '半透明磨砂玻璃',
+} as const;

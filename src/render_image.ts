@@ -133,7 +133,7 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
         ${wing.name}
         ${wing.name.startsWith('s_') && wingMapManager?.getSpiritName(wing.name)
           ? `<span class="map-wl-or-spirit-name">【${wingMapManager.getSpiritName(wing.name)}】</span>`
-          : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span>【暂时不知道】</span>'}
+          : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span class="unknown-name">【暂时不知道】</span>'}
       </div>
       <div class="wing-category">${wing.category}</div>
       <div class="wing-subcategory">${subCategoryDisplay}</div>
@@ -231,7 +231,7 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     body {
-      width: 1200px;
+      width: 1500px;
       height: auto;
       min-height: 600px;
       ${bgBase64 
@@ -249,30 +249,42 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     .container {
-      max-width: 1100px;
+      max-width: 1300px;
       margin: 0 auto;
+      background: rgba(255, 255, 255, 0.67);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .header {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.13);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 15px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 16px rgba(31, 38, 135, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .title {
       font-size: 72px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #4a5dc9;
       margin-bottom: 15px;
       line-height: 1.1;
-      text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+      text-shadow: 
+        -2px -2px 0 #fff,
+        2px -2px 0 #fff,
+        -2px 2px 0 #fff,
+        2px 2px 0 #fff,
+        0 0 15px rgba(255, 255, 255, 0.8),
+        0 4px 20px rgba(102, 126, 234, 0.6);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
     
     .stats {
@@ -282,35 +294,51 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     }
     
     .stat-item {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.13), rgba(118, 75, 162, 0.13));
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       border-radius: 10px;
       padding: 15px;
       text-align: center;
-      border: 1px solid rgba(102, 126, 234, 0.2);
+      border: 1px solid rgba(102, 126, 234, 0.3);
     }
     
     .stat-label {
       font-size: 24px;
-      color: #666;
+      color: #2c3e50;
       margin-bottom: 5px;
       line-height: 1.2;
-      font-weight: 500;
+      font-weight: 600;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 8px rgba(255, 255, 255, 0.8);
     }
     
     .stat-value {
       font-size: 60px;
-      font-weight: 700;
-      color: #667eea;
+      font-weight: 800;
+      color: #4a5dc9;
       line-height: 1;
+      text-shadow: 
+        -2px -2px 0 #fff,
+        2px -2px 0 #fff,
+        -2px 2px 0 #fff,
+        2px 2px 0 #fff,
+        0 0 10px rgba(255, 255, 255, 0.9),
+        0 3px 15px rgba(74, 93, 201, 0.5);
     }
     
     .wings-container {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.13);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: 15px;
       padding: 20px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 16px rgba(31, 38, 135, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .wings-grid {
@@ -322,7 +350,9 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .category-header {
       grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.13), rgba(118, 75, 162, 0.13));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-radius: 10px;
       padding: 12px 20px;
       margin: 10px 0 5px 0;
@@ -332,25 +362,35 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .category-title {
       font-size: 32px;
-      font-weight: 800;
-      color: #667eea;
+      font-weight: 900;
+      color: #4a5dc9;
       margin-bottom: 5px;
-      text-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      text-shadow: 
+        -2px -2px 0 #fff,
+        2px -2px 0 #fff,
+        -2px 2px 0 #fff,
+        2px 2px 0 #fff,
+        0 0 12px rgba(255, 255, 255, 0.9),
+        0 3px 15px rgba(74, 93, 201, 0.5);
     }
     
     .category-stats {
       font-size: 20px;
-      color: #764ba2;
-      font-weight: 600;
+      color: #5a3a7d;
+      font-weight: 700;
       letter-spacing: 0.5px;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 8px rgba(255, 255, 255, 0.9);
     }
     
     .wing-card {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       border-radius: 8px;
       padding: 10px 8px;
       text-align: center;
@@ -403,7 +443,9 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       margin-bottom: 8px;
       padding: 4px;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
     }
     
     .wing-icon-status .icon {
@@ -420,26 +462,32 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .wing-icon-status .status-text {
       font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
       line-height: 1;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 6px rgba(255, 255, 255, 0.9);
     }
     
     .wing-card.collected .wing-icon-status {
-      color: #667eea;
+      color: #4a5dc9;
       background: rgba(102, 126, 234, 0.1);
     }
     
     .wing-card.uncollected .wing-icon-status {
-      color: #999;
+      color: #555;
       background: rgba(150, 150, 150, 0.08);
     }
     
     .wing-name {
       font-size: 22px;
-      font-weight: 700;
-      color: #2c3e50;
+      font-weight: 800;
+      color: #1a2332;
       margin-bottom: 6px;
       word-break: break-word;
       flex: 1;
@@ -449,38 +497,71 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
       flex-direction: column;
       gap: 4px;
       line-height: 1.3;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 6px rgba(255, 255, 255, 0.9),
+        0 2px 8px rgba(0, 0, 0, 0.2);
       font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
     
     .map-wl-or-spirit-name {
       font-size: 18px;
-      color: #764ba2;
-      font-weight: 500;
+      color: #5a3a7d;
+      font-weight: 700;
       font-style: italic;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 6px rgba(255, 255, 255, 0.9);
+    }
+
+    .unknown-name {
+      font-size: 19px;
+      color: #000000;
+      font-weight: 700;
+      font-style: italic;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 6px rgba(255, 255, 255, 0.9);
     }
     
     .wing-category {
       font-size: 28px;
-      color: #667eea;
-      font-weight: 800;
+      color: #4a5dc9;
+      font-weight: 900;
       margin-bottom: 4px;
       line-height: 1.2;
-      text-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
       letter-spacing: 1px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      text-shadow: 
+        -2px -2px 0 #fff,
+        2px -2px 0 #fff,
+        -2px 2px 0 #fff,
+        2px 2px 0 #fff,
+        0 0 10px rgba(255, 255, 255, 0.9),
+        0 2px 12px rgba(74, 93, 201, 0.4);
     }
     
     .wing-subcategory {
       font-size: 26px;
-      color: #764ba2;
-      font-weight: 600;
+      color: #5a3a7d;
+      font-weight: 700;
       margin-bottom: 5px;
       line-height: 1.2;
       font-style: italic;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 8px rgba(255, 255, 255, 0.9);
       text-decoration: underline;
       text-decoration-color: rgba(118, 75, 162, 0.3);
       text-underline-offset: 3px;
@@ -500,11 +581,17 @@ function generateWingHtml(roleId: string, wings: WingDisplayData[], bgBase64?: s
     
     .role-id {
       font-size: 24px;
-      color: #999;
+      color: #555;
       margin-top: 12px;
       font-family: 'Courier New', monospace;
       line-height: 1.2;
-      font-weight: 600;
+      font-weight: 700;
+      text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        0 0 6px rgba(255, 255, 255, 0.9);
     }
   </style>
 </head>
@@ -582,7 +669,7 @@ export async function renderWingImage(
     
     // 设置视口
     await browserPage.setViewport({
-      width: 1200,
+      width: 1500,
       height: 800,
       deviceScaleFactor: 1,
     })
@@ -600,7 +687,7 @@ export async function renderWingImage(
     
     // 重新设置视口以适应内容
     await browserPage.setViewport({
-      width: 1200,
+      width: 1500,
       height: contentHeight,
       deviceScaleFactor: 1,
     })
