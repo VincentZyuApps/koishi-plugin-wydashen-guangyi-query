@@ -166,7 +166,7 @@ export function apply(ctx: Context, config: any) {
 
         // 返回图片
         // return h.image(`data:image/jpeg;base64,${screenshot}`);
-        await session.send(`${h.quote(session.messageId)}${h.image(`data:image/jpeg;base64,${screenshot}`)}`);
+        await session.send(`${h.quote(session.messageId)}${h.image(`data:image/png;base64,${screenshot}`)}`);
         return;
       } catch (error) {
         ctx.logger.error(`Error querying wings: ${error}`)
