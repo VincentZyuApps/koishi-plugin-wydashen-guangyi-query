@@ -194,9 +194,7 @@ function generateWingHtml(
       wingsHtml += `
         <div class="category-header">
           <div class="category-title">🏷️ ${category}</div>
-          <div class="category-stats">
-            总数: ${categoryTotal} | 已收集: ${categoryCollected} | 进度: ${((categoryCollected / categoryTotal) * 100).toFixed(1)}%
-          </div>
+          <div class="category-stats">总数: ${categoryTotal} | 已收集: ${categoryCollected} | 进度: ${((categoryCollected / categoryTotal) * 100).toFixed(1)}%</div>
         </div>
       `
       
@@ -269,14 +267,14 @@ function generateWingHtml(
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-radius: 15px;
-      padding: 20px;
+      padding: 20px 20px 5px 20px;
       margin-bottom: 15px;
       box-shadow: 0 4px 16px rgba(31, 38, 135, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .title {
-      font-size: 72px;
+      font-size: 60px;
       font-weight: 700;
       color: #4a5dc9;
       margin-bottom: 15px;
@@ -362,13 +360,15 @@ function generateWingHtml(
       margin: 10px 0 5px 0;
       border: 2px solid rgba(102, 126, 234, 0.4);
       box-shadow: 0 2px 10px rgba(102, 126, 234, 0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .category-title {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 900;
       color: #4a5dc9;
-      margin-bottom: 5px;
       text-shadow: 
         -2px -2px 0 #fff,
         2px -2px 0 #fff,
@@ -379,7 +379,7 @@ function generateWingHtml(
     }
     
     .category-stats {
-      font-size: 20px;
+      font-size: 23px;
       color: #5a3a7d;
       font-weight: 700;
       letter-spacing: 0.5px;
@@ -411,27 +411,27 @@ function generateWingHtml(
     .wing-card.collected {
       background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
       border-color: rgba(102, 126, 234, 0.5);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+      box-shadow: 1px 4px 13px rgba(102, 126, 234, 0.45);
     }
     
     .wing-card.deposited {
       background: linear-gradient(135deg, rgba(255, 165, 0, 0.12), rgba(255, 140, 0, 0.12));
       border-color: rgba(255, 165, 0, 0.4);
       box-shadow: 0 2px 10px rgba(255, 165, 0, 0.15);
-      opacity: 0.85;
+      opacity: 0.6;
     }
     
     .wing-card.not-redeemed {
       background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(123, 31, 162, 0.1));
       border-color: rgba(156, 39, 176, 0.35);
       box-shadow: 0 1px 8px rgba(156, 39, 176, 0.12);
-      opacity: 0.75;
+      opacity: 0.5;
     }
     
     .wing-card.uncollected {
       background: rgba(255, 255, 255, 0.3);
       border-color: rgba(200, 200, 200, 0.3);
-      opacity: 0.7;
+      opacity: 0.4;
     }
     
     .wing-card:hover {
@@ -453,19 +453,19 @@ function generateWingHtml(
     }
     
     .wing-icon-status .icon {
-      font-size: 40px;
+      font-size: 26px;
       line-height: 1;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
     
     .wing-icon-status .status-icon {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: bold;
       line-height: 1;
     }
     
     .wing-icon-status .status-text {
-      font-size: 20px;
+      font-size: 25px;
       font-weight: 800;
       line-height: 1;
       text-transform: uppercase;
@@ -489,10 +489,10 @@ function generateWingHtml(
     }
     
     .wing-name {
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 9.99px;
+      font-weight: 600;
       color: #1a2332;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       word-break: break-word;
       flex: 1;
       display: flex;
@@ -538,10 +538,10 @@ function generateWingHtml(
     }
     
     .wing-category {
-      font-size: 28px;
+      font-size: 30px;
       color: #4a5dc9;
       font-weight: 900;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       line-height: 1.2;
       letter-spacing: 1px;
       text-shadow: 
@@ -554,10 +554,10 @@ function generateWingHtml(
     }
     
     .wing-subcategory {
-      font-size: 26px;
+      font-size: 20px;
       color: #5a3a7d;
       font-weight: 700;
-      margin-bottom: 5px;
+      margin-bottom: 2.5px;
       line-height: 1.2;
       font-style: italic;
       text-shadow: 
@@ -566,9 +566,6 @@ function generateWingHtml(
         -1px 1px 0 #fff,
         1px 1px 0 #fff,
         0 0 8px rgba(255, 255, 255, 0.9);
-      text-decoration: underline;
-      text-decoration-color: rgba(118, 75, 162, 0.3);
-      text-underline-offset: 3px;
     }
     
     .wing-deposited {
@@ -586,10 +583,9 @@ function generateWingHtml(
     .role-id {
       font-size: 24px;
       color: #555;
-      margin-top: 12px;
-      font-family: 'Courier New', monospace;
+      margin-top: 9px;
       line-height: 1.2;
-      font-weight: 700;
+      font-weight: 900;
       text-shadow: 
         -1px -1px 0 #fff,
         1px -1px 0 #fff,
@@ -646,7 +642,9 @@ export async function renderWingImage(
   wingMapManager?: any,
   separateByCategory: boolean = false,
   containerWidth: number = 1300,
-  viewportWidth: number = 1500
+  viewportWidth: number = 1500,
+  imageType: string = 'png',
+  screenshotQuality: number = 80
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -699,11 +697,17 @@ export async function renderWingImage(
     })
     
     // 截图
-    const screenshot = await browserPage.screenshot({
+    const screenshotOptions: any = {
       encoding: 'base64',
-      type: 'png',
-      // quality: 90,
-    })
+      type: imageType,
+    }
+    
+    // PNG不支持quality参数，只有jpeg和webp支持
+    if (imageType !== 'png') {
+      screenshotOptions.quality = screenshotQuality
+    }
+    
+    const screenshot = await browserPage.screenshot(screenshotOptions)
     
     return screenshot
   } catch (error) {

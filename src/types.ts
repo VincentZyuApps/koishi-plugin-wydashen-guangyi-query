@@ -16,7 +16,17 @@ export const ExtraWingTagMap = [
   {"光翼名字":"l_SunsetEnd_1","一级标签":"霞谷","二级标签":"旧版终点"},
 ] as const;
 
+//图片风格
 export const IMAGE_STYLES = {
   THICK_WHITE_BACKGROUND: '厚实白色背景',
   SEMI_TRANSPARENT_FROSTED_GLASS: '半透明磨砂玻璃',
 } as const;
+
+//图片格式
+export const IMAGE_TYPES = {
+  PNG: 'png',
+  JPEG: 'jpeg',
+  WEBP: 'webp',
+} as const;
+
+export type ImageType = typeof IMAGE_TYPES[keyof typeof IMAGE_TYPES];
