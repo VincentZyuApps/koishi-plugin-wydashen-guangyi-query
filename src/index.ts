@@ -3,10 +3,12 @@ import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
 import { generateWingText } from './gen_text'
 import { generateWingForward } from './gen_forward'
+import { renderWithGo, binaryExists } from './render_go'
 import path from 'path'
 import fs from 'fs'
 import { WingMapManager } from './wing_map_manager'
-import { IMAGE_TYPES } from './types'
+import { IMAGE_TYPES, GO_RENDERER_DOWNLOAD_URLS, getDefaultGoBinaryPath, getCurrentArchDescription } from './types'
+import { validateAndDownloadFont } from './utils'
 
 export const name = 'wydashen-guangyi-query'
 
@@ -79,17 +81,45 @@ export const Config = Schema.intersect([
       .min(0).max(100).step(1)
       .default(80)
       .description('📏 Puppeteer 截图质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
-  }).description('🎨 图片渲染设置'),
+    puppeteerShowPortalIcons: Schema.boolean()
+      .default(true)
+      .description('🚪 Puppeteer: 是否显示地图传送门图标'),
+  }).description('🎨 Puppeteer图片渲染设置'),
 
   Schema.object({
-    enableRustBackend: Schema.boolean()
+    enableGoBackend: Schema.boolean()
       .default(false)
-      .description('🦀 是否启用 Rust 后端。<br><em>启用后，插件将使用 Rust 实现的后端服务，可能带来性能提升 ⚡</em>'),
-    rustBackendUrl: Schema.string()
+      .description('🐹 是否启用 Go 渲染器。<br><em>启用后，插件将使用 Go 实现的本地渲染器，无需 Puppeteer，性能更高 ⚡</em>'),
+    goRendererBinaryPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
-      .description('🔗 Rust 后端服务器地址')
-      .default('http://sh-aliyun2.vincentzyu233.cn:51127'),
-  }).description('🦀 Rust 后端设置'),
+      .default(getDefaultGoBinaryPath())
+      .description('📂 Go 渲染器二进制文件路径。<br><em>适合场景: 1. 开发者快速调试 2. Geek 用户自己编译二进制</em>'),
+    goRendererDownloadUrls: Schema.array(
+      Schema.object({
+        source: Schema.string().description('来源名称'),
+        url: Schema.string().description('下载地址'),
+      })
+    ).role('table')
+      .default([...GO_RENDERER_DOWNLOAD_URLS])
+      .description(`📥 Go 渲染器二进制文件下载地址表<br>\
+        <strong style="color: #10b981;">🖥️ 检测到当前设备架构: <code>${getCurrentArchDescription()}</code></strong>`),
+    goDownloadFontFromGitee: Schema.boolean()
+      .default(false)
+      .description('📥 Go: 是否从 Gitee 下载字体文件。<br><em>启用后，插件启动时会自动下载字体到下方路径</em>'),
+    goUseCustomFont: Schema.boolean()
+      .default(false)
+      .description('🔤 Go: 是否使用自定义字体 (LXGW文楷)。'),
+    goCustomFontPath: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
+      .description('📂 Go: 自定义字体文件路径。'),
+    goDefaultDarkMode: Schema.boolean()
+      .default(true)
+      .description('🌙 Go: 是否默认启用黑夜模式渲染'),
+    goShowPortalIcons: Schema.boolean()
+      .default(true)
+      .description('🚪 Go: 是否显示地图传送门图标'),
+  }).description('🐹 Go 渲染器设置'),
 
   Schema.object({
     verboseConsoleLog: Schema.boolean()
@@ -112,6 +142,11 @@ export function apply(ctx: Context, config: any) {
 
   ctx.on('ready', async () => {
     await wingMapManager.initialize();
+    
+    // 如果启用了从 Gitee 下载字体，则验证并下载字体
+    if (config.goDownloadFontFromGitee) {
+      await validateAndDownloadFont(ctx, config.goCustomFontPath);
+    }
   });
 
   ctx.command('刷新光翼')
@@ -171,12 +206,15 @@ export function apply(ctx: Context, config: any) {
 
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
+        const portalIconsPathStr = path.resolve(__dirname, '../assets/portal');
+
         // 渲染图片
         const screenshot = await renderWingImage(
           ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(), 
           config.backgroundImagePath, wingMapManager, 
           config.separateByCategory, config.containerWidth, config.viewportWidth,
-          config.imageType, config.screenshotQuality
+          config.imageType, config.screenshotQuality,
+          config.puppeteerShowPortalIcons, portalIconsPathStr
         )
 
         // 返回图片
@@ -344,16 +382,110 @@ export function apply(ctx: Context, config: any) {
       }
     })
 
-  if ( config.enableRustBackend )
-  ctx.command('查询光翼-rust <userId:string>')
-    .alias('aqgrs')
-    .alias('awa_query')
-    .action(async ( {session}, userId ) => {
+  // Go 渲染器指令
+  if ( config.enableGoBackend )
+  ctx.command('查询光翼-go <userId:string>')
+    .alias('aqgo')
+    .alias('awa_query_guangyi_go')
+    .option('darkMode', '-d [value:string]', { fallback: '' })
+    .action(async ( {session, options}, userId ) => {
       if (!userId) {
-        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼 <角色ID>`)
+        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-go <角色ID>`)
         return;
       }
-      await session.send( `${h.quote(session.messageId)}${h.image(`${config.rustBackendUrl}/queryGuangyiRust?id=${userId}&type=image`)}` )
+
+      // 处理黑夜模式参数
+      let isDarkMode = config.goDefaultDarkMode ?? true
+      if (options?.darkMode) {
+        const val = String(options.darkMode).toLowerCase()
+        if (['yes', 'y', 'true', 't'].includes(val)) {
+          isDarkMode = true
+        } else if (['no', 'n', 'false', 'f'].includes(val)) {
+          isDarkMode = false
+        }
+      }
+
+      // 检查二进制是否存在
+      if (!binaryExists(config.goRendererBinaryPath)) {
+        await session.send(`${h.quote(session.messageId)}❌ Go 渲染器二进制文件不存在。请先下载或编译: ${config.goRendererBinaryPath}`)
+        return;
+      }
+
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询 (Go 渲染器)，请稍候...`);
+
+      try {
+        // 调用后端 API 查询光翼数据
+        const backendUrl = config.backendUrl || 'http://sh-aliyun2.vincentzyu233.cn:51024'
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+
+        ctx.logger.debug(`[Go] Querying wing data from: ${apiUrl}`)
+
+        const response = await ctx.http.get(apiUrl)
+
+        if (!response.success) {
+          await session.send(`${h.quote(session.messageId)}查询失败: ${response.result || '未知错误'}`)
+          return;
+        }
+
+        // 解析响应
+        const responseData = response.data
+        if (!responseData || !responseData.result) {
+          await session.send(`${h.quote(session.messageId)}获取数据格式错误`)
+          return;
+        }
+
+        // result 字段是 JSON 字符串，需要解析
+        let wingData
+        try {
+          wingData = JSON.parse(responseData.result)
+        } catch (e) {
+          ctx.logger.error(`Failed to parse wing data: ${e}`)
+          await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
+          return;
+        }
+
+        if (!wingData.wing_buffs || !Array.isArray(wingData.wing_buffs)) {
+          await session.send(`${h.quote(session.messageId)}光翼数据格式错误`)
+          return;
+        }
+
+        ctx.logger.debug(`[Go] Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+
+        const portalIconsPathStr = path.resolve(__dirname, '../assets/portal');
+
+        // 使用 Go 渲染器渲染图片
+        const screenshot = await renderWithGo(
+          ctx, 
+          userId, 
+          wingData.wing_buffs, 
+          wingMapManager.getWingMap(),
+          { 
+            separateByCategory: config.separateByCategory, 
+            containerWidth: config.containerWidth,
+            binaryPath: config.goRendererBinaryPath,
+            customFontPath: config.goUseCustomFont ? config.goCustomFontPath : '',
+            darkMode: isDarkMode,
+            showPortalIcons: config.goShowPortalIcons,
+            portalIconsPath: portalIconsPathStr
+          }
+        )
+
+        // 返回图片
+        await session.send(`${h.quote(session.messageId)}${h.image(`data:image/png;base64,${screenshot}`)}`);
+        return;
+      } catch (error) {
+        ctx.logger.error(`[Go] Error querying wings: ${error}`)
+        
+        if (error instanceof Error && error.message.includes('404')) {
+          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          return;
+        }
+
+        await session.send(`${h.quote(session.messageId)}查询失败: ${error instanceof Error ? error.message : String(error)}`);
+        return;
+      } finally {
+        await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
+      }
     })
 
   ctx.command('获取id方法')

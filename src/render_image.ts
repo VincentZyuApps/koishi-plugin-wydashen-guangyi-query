@@ -147,7 +147,8 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
 function generateWingHtml(
   roleId: string, wings: WingDisplayData[], 
   bgBase64?: string, bgOffset?: number, wingMapManager?: any, 
-  separateByCategory: boolean = false, containerWidth: number = 1300, viewportWidth: number = 1500
+  separateByCategory: boolean = false, containerWidth: number = 1300, viewportWidth: number = 1500,
+  showPortalIcons: boolean = false, portalIconsPath: string = ''
 ): string {
   // 按分类分组
   const groupedByCategory = new Map<string, WingDisplayData[]>()
@@ -190,10 +191,35 @@ function generateWingHtml(
       const categoryCollected = categoryWings.filter(w => w.collected).length
       const categoryTotal = categoryWings.length
       
+      let iconHtml = ''
+      if (showPortalIcons && portalIconsPath) {
+        const iconMap: {[key: string]: string} = {
+          '晨岛': 'chendao.png',
+          '云野': 'yunye.png',
+          '雨林': 'yulin.png',
+          '霞谷': 'xiagu.png',
+          '暮土': 'mutu.png',
+          '禁阁': 'jinge.png'
+        }
+        
+        if (iconMap[category]) {
+           const iconPath = `${portalIconsPath}/${iconMap[category]}`
+           if (fs.existsSync(iconPath)) {
+              try {
+                const iconBuf = fs.readFileSync(iconPath)
+                const iconB64 = iconBuf.toString('base64')
+                iconHtml = `<img src="data:image/png;base64,${iconB64}" class="portal-icon" />`
+              } catch (e) {
+                // ignore error
+              }
+           }
+        }
+      }
+
       // 添加分类标题
       wingsHtml += `
         <div class="category-header">
-          <div class="category-title">🏷️ ${category}</div>
+          <div class="category-title">${iconHtml} 🏷️ ${category}</div>
           <div class="category-stats">总数: ${categoryTotal} | 已收集: ${categoryCollected} | 进度: ${((categoryCollected / categoryTotal) * 100).toFixed(1)}%</div>
         </div>
       `
@@ -376,6 +402,14 @@ function generateWingHtml(
         2px 2px 0 #fff,
         0 0 12px rgba(255, 255, 255, 0.9),
         0 3px 15px rgba(74, 93, 201, 0.5);
+      display: flex;
+      align-items: center;
+    }
+
+    .portal-icon {
+      height: 40px;
+      margin-right: 15px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
     
     .category-stats {
@@ -644,7 +678,9 @@ export async function renderWingImage(
   containerWidth: number = 1300,
   viewportWidth: number = 1500,
   imageType: string = 'png',
-  screenshotQuality: number = 80
+  screenshotQuality: number = 80,
+  showPortalIcons: boolean = false,
+  portalIconsPath: string = ''
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -669,7 +705,7 @@ export async function renderWingImage(
     }
     
     // 生成 HTML
-    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory, containerWidth, viewportWidth)
+    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory, containerWidth, viewportWidth, showPortalIcons, portalIconsPath)
     
     // 设置视口
     await browserPage.setViewport({

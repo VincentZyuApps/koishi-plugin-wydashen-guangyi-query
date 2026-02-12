@@ -16,3 +16,12 @@ tsconfig.tsbuildinfo
 *.ntvs*
 *.njsproj
 *.sln
+
+# Go build output
+bin/
+
+# Temp files
+tmp/
+
+# Downloaded fonts (auto-downloaded at runtime)
+assets/LXGWWenKaiMono-Regular.ttf
