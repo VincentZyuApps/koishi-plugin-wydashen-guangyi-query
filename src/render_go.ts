@@ -84,7 +84,15 @@ export async function renderWithGo(
   roleId: string,
   wingBuffs: readonly any[],
   wingMap: readonly any[],
-  config: { separateByCategory?: boolean; containerWidth?: number; binaryPath?: string; customFontPath?: string; darkMode?: boolean; showPortalIcons?: boolean } = {}
+  config: { 
+    separateByCategory?: boolean; 
+    containerWidth?: number; 
+    binaryPath?: string; 
+    customFontPath?: string; 
+    darkMode?: boolean; 
+    showPortalIcons?: boolean;
+    portalIconsPath?: string;
+  } = {}
 ): Promise<string> {
   const binaryPath = config.binaryPath || getBinaryPath()
 
@@ -104,7 +112,7 @@ export async function renderWithGo(
       customFontPath: config.customFontPath ?? '',
       darkMode: config.darkMode ?? true,
       showPortalIcons: config.showPortalIcons ?? true,
-      portalIconsPath: path.resolve(__dirname, '../assets/portal'),
+      portalIconsPath: config.portalIconsPath || path.resolve(__dirname, '../assets/portal'),
     },
   }
 
