@@ -202,6 +202,7 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.check.outputs.version }}"
           gh release create "$VERSION" \
@@ -209,5 +210,3 @@ jobs:
             --notes-file release_notes.md \
             --latest \
             ./artifacts/wing-renderer-*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
