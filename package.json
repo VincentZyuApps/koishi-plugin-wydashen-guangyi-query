@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wydashen-guangyi-query",
   "description": "查询光遇国服光翼获取情况（支持Go/Puppeteer双引擎）",
-  "version": "0.4.1-beta.4",
+  "version": "0.4.1-beta.5",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
