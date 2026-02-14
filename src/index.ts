@@ -1,4 +1,4 @@
-import { Context, Schema, h } from 'koishi'
+import { Context, h } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
 import { generateWingText } from './gen_text'
@@ -6,128 +6,65 @@ import { generateWingForward } from './gen_forward'
 import { renderWithGo, binaryExists } from './render_go'
 import path from 'path'
 import fs from 'fs'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import { WingMapManager } from './wing_map_manager'
-import { IMAGE_TYPES, GO_RENDERER_DOWNLOAD_URLS, getDefaultGoBinaryPath, getCurrentArchDescription } from './types'
 import { validateAndDownloadFont } from './utils'
+import type { Config } from './config'
+
+export { Config } from './config'
 
 export const name = 'wydashen-guangyi-query'
+
+const pkg = JSON.parse(
+  readFileSync(resolve(__dirname, '../package.json'), 'utf-8')
+)
+
+export const usage = `
+<h1>Koishi 插件：wydashen-guangyi-query 🕊️</h1>
+<h2>🎯 插件版本：<span style="color: #ff6b6b; font-weight: bold;">v${pkg.version}</span></h2>
+<p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b style="color: #50c878;">259248174</b></p>
+<p>nonebot koishi zerobot，py js go， sky光遇bot交流qq群：<b style="color: #50c878;">475328908</b></p>
+<p style="color: #e74c3c;">⚠️ 如果查询光翼的后端挂了，请到群里找 <b>vincentzyu</b> 反馈~</p>
+
+<hr>
+
+<h3 style="color: #3498db;">📖 插件简介</h3>
+<p>查询<b>光遇国服</b>玩家的<b>光翼（Winged Light）</b>获取情况，支持 <b>Puppeteer</b> 和 <b>Go</b> 双渲染引擎。</p>
+<p>输入玩家角色ID，即可生成一张光翼收集情况的图片，按地图分类展示已收集与未收集的光翼。</p>
+
+<h3 style="color: #27ae60;">🎮 主要指令</h3>
+<ul>
+  <li><b>查询光翼 &lt;角色ID&gt;</b> — 使用 Puppeteer 渲染图片返回光翼收集情况</li>
+  <li><b>查询光翼-go &lt;角色ID&gt;</b> — 使用 Go 渲染器渲染（性能更高 ⚡）</li>
+  <li><b>查询光翼-forward &lt;角色ID&gt;</b> — 以合并转发消息返回（仅 OneBot 平台）</li>
+  <li><b>获取id方法</b> — 查看如何获取自己的角色ID</li>
+  <li><b>刷新光翼</b> — 手动刷新光翼映射数据</li>
+</ul>
+
+<h3 style="color: #e67e22;">⚡ 双引擎渲染</h3>
+<p>本插件支持两种渲染方式：</p>
+<ul>
+  <li><b style="color: #9b59b6;">Puppeteer 渲染</b> — 默认方式，需要 puppeteer 服务，效果精美</li>
+  <li><b style="color: #2ecc71;">Go 渲染器</b> — 可选方式，无需 Puppeteer，性能更高，支持深色模式</li>
+</ul>
+
+<hr>
+
+<p>📦 插件仓库地址：</p>
+<ul>
+  <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query">Gitee</a></li>
+  <li><a href="https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query">GitHub</a></li>
+</ul>
+
+<hr>
+
+
+`
 
 export const inject = {
   required: ['puppeteer', 'http']
 }
-
-export const Config = Schema.intersect([
-  Schema.object({
-    backendUrl: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .description('🌐 后端服务器地址')
-      .default('http://sh-aliyun2.vincentzyu233.cn:51024'),
-    wyWingMapUrl: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .description('🗺️ 光翼 ID 映射 JSON 地址')
-      .default('https://s.166.net/config/ds_yy_02/ma75_wing_wings.json'),
-  }).description('⚙️ 后端设置'),
-  
-  Schema.object({
-    backgroundImagePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/sky_bg.png'))
-      .description(`🖼️ 背景图片路径`),
-    tutorialImagePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/tutorial_new_20251026.png'))
-      .description(`📚 查询光翼使用方法教程图片路径`),
-    skyAppXmlFilePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/0.14.8.xml'))
-      .description(`📄 Sky App 导出的 XML 文件路径`),
-  }).description('📁 路径设置'),
-
-  Schema.object({
-    enableImageCommand: Schema.boolean()
-      .default(true)
-      .description('🖼️ 注册渲染图片的指令'),
-    enableTextCommand: Schema.boolean()
-      .default(false)
-      .disabled()
-      .description('📝 注册发送文字的指令 <em>(东西太多了 onebot 一条发不完，先用合并转发吧)</em>'),
-    enableForwardCommand: Schema.boolean()
-      .default(true)
-      .description('📨 注册发送合并转发的指令 <em>(只适用于 onebot 平台)</em>')
-  }).description('🎮 指令设置'),
-
-  Schema.object({
-    separateByCategory: Schema.boolean()
-      .default(true)
-      .description('🏷️ 在生成的图片中，是否按分类分开渲染不同的光翼<br>\
-        <em>(遇境 → 云巢 → 晨岛 → 云野 → 雨林 → 霞谷 → 暮土 → 禁阁 → 暴风眼 → <br>普通永久 → 复刻永久 → 破晓季)</em>'),
-    containerWidth: Schema.number()
-      .default(999)
-      .min(0).max(3000)
-      .description('📐 图片容器的宽度 (像素)'),
-    viewportWidth: Schema.number()
-      .default(1000)
-      .min(0).max(3000)
-      .description('🖥️ 视口宽度 (像素)'),
-    imageType: Schema.union([
-      Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG}, ❌ 不支持调整quality`),
-      Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整quality`),
-      Schema.const(IMAGE_TYPES.WEBP).description(`🌐 ${IMAGE_TYPES.WEBP}, ✅ 支持调整quality`),
-    ])
-      .role('radio')
-      .default(IMAGE_TYPES.PNG)
-      .description("📤 渲染图片的输出类型。"),
-    screenshotQuality: Schema.number()
-      .min(0).max(100).step(1)
-      .default(80)
-      .description('📏 Puppeteer 截图质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
-    puppeteerShowPortalIcons: Schema.boolean()
-      .default(true)
-      .description('🚪 Puppeteer: 是否显示地图传送门图标'),
-  }).description('🎨 Puppeteer图片渲染设置'),
-
-  Schema.object({
-    enableGoBackend: Schema.boolean()
-      .default(false)
-      .description('🐹 是否启用 Go 渲染器。<br><em>启用后，插件将使用 Go 实现的本地渲染器，无需 Puppeteer，性能更高 ⚡</em>'),
-    goRendererBinaryPath: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .default(getDefaultGoBinaryPath())
-      .description('📂 Go 渲染器二进制文件路径。<br><em>适合场景: 1. 开发者快速调试 2. Geek 用户自己编译二进制</em>'),
-    goRendererDownloadUrls: Schema.array(
-      Schema.object({
-        source: Schema.string().description('来源名称'),
-        url: Schema.string().description('下载地址'),
-      })
-    ).role('table')
-      .default([...GO_RENDERER_DOWNLOAD_URLS])
-      .description(`📥 Go 渲染器二进制文件下载地址表<br>\
-        <strong style="color: #10b981;">🖥️ 检测到当前设备架构: <code>${getCurrentArchDescription()}</code></strong>`),
-    goDownloadFontFromGitee: Schema.boolean()
-      .default(false)
-      .description('📥 Go: 是否从 Gitee 下载字体文件。<br><em>启用后，插件启动时会自动下载字体到下方路径</em>'),
-    goUseCustomFont: Schema.boolean()
-      .default(false)
-      .description('🔤 Go: 是否使用自定义字体 (LXGW文楷)。'),
-    goCustomFontPath: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
-      .description('📂 Go: 自定义字体文件路径。'),
-    goDefaultDarkMode: Schema.boolean()
-      .default(true)
-      .description('🌙 Go: 是否默认启用黑夜模式渲染'),
-    goShowPortalIcons: Schema.boolean()
-      .default(true)
-      .description('🚪 Go: 是否显示地图传送门图标'),
-  }).description('🐹 Go 渲染器设置'),
-
-  Schema.object({
-    verboseConsoleLog: Schema.boolean()
-      .default(false)
-      .description('🐛 是否启用详细的控制台日志输出。启用后，插件将在控制台输出更多调试和运行时信息，有助于问题排查 🔍'),
-  }).description('🛠️ 调试设置')
-
-])
 
 interface WingBuff {
   name: string
@@ -137,7 +74,7 @@ interface WingBuff {
   deposit_id: string
 }
 
-export function apply(ctx: Context, config: any) {
+export function apply(ctx: Context, config: Config) {
   const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath);
 
   ctx.on('ready', async () => {
