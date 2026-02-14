@@ -1,10 +1,18 @@
 ![koishi-plugin-wydashen-guangyi-query](https://socialify.git.ci/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/image?description=1&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&name=1&owner=1&stargazers=1&theme=Auto)
 
-# koishi-plugin-wydashen-guangyi-query
+# koishi-plugin-wydashen-guangyi-query 🕊️
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query) [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
 
-查询光遇国服光翼获取情况
+查询**光遇国服**玩家的**光翼（Winged Light）**获取情况，支持 **Puppeteer** 和 **Go** 双渲染引擎。
+
+输入玩家角色ID，即可生成一张光翼收集情况的图片，按地图分类展示已收集与未收集的光翼。
+
+> 插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：**259248174**
+
+> nonebot koishi zerobot，py js go， sky光遇bot交流qq群：**475328908**
+
+> ⚠️ 如果查询光翼的后端挂了，请到群里找 **vincentzyu** 反馈~
 
 <div align="center">
 
@@ -20,12 +28,32 @@
 
 </div>
 
-## 指令
-### 查询光翼 <玩家id>
+---
+
+## ⚡ 双引擎渲染
+
+本插件支持两种渲染方式：
+
+- **Puppeteer 渲染** — 默认方式，需要 puppeteer 服务，效果精美
+- **Go 渲染器** — 可选方式，无需 Puppeteer，性能更高，支持深色模式
+
+---
+
+## 🎮 指令
+
+| 指令 | 说明 |
+| --- | --- |
+| `查询光翼 <角色ID>` | 使用 Puppeteer 渲染图片返回光翼收集情况 |
+| `查询光翼-go <角色ID>` | 使用 Go 渲染器渲染（性能更高 ⚡） |
+| `查询光翼-forward <角色ID>` | 以合并转发消息返回（仅 OneBot 平台） |
+| `获取id方法` | 查看如何获取自己的角色ID |
+| `刷新光翼` | 手动刷新光翼映射数据 |
+
+### 查询光翼 \<玩家id\>
 > 返回结果
 ![assets/query_res.png](assets/query_res.png)
 
-### 查询光翼-go <玩家id>
+### 查询光翼-go \<玩家id\>
 > 返回结果
 ![assets/query_go_res.png](assets/query_go_res.png)
 

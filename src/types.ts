@@ -72,25 +72,30 @@ export function getCurrentArchDescription(): string {
   return `${osName}-${archName}`
 }
 
-// Go 渲染器二进制下载地址
+// Go 渲染器二进制下载地址 (版本号从 package.json 动态读取)
+const _version = getPackageVersion()
+
+const GITEE_BASE = `https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/${_version}`
+const GITHUB_BASE = `https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/${_version}`
+
 export const GO_RENDERER_DOWNLOAD_URLS = [
   // Gitee (中国大陆优先)
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-linux-amd64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-linux-arm64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-darwin-amd64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-darwin-arm64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-windows-amd64.exe' },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-linux-amd64-${_version}` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-linux-arm64-${_version}` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-darwin-amd64-${_version}` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-darwin-arm64-${_version}` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-windows-amd64-${_version}.exe` },
   // GitHub
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-linux-amd64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-linux-arm64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-darwin-amd64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-darwin-arm64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/v1.0.0/wing-renderer-windows-amd64.exe' },
-] as const;
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-linux-amd64-${_version}` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-linux-arm64-${_version}` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-darwin-amd64-${_version}` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-darwin-arm64-${_version}` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-windows-amd64-${_version}.exe` },
+];
 
 // ============================================================
 // 光翼映射表 (from https://s.166.net/config/ds_yy_02/ma75_wing_wings.json)
-// 2025-10-25
+// 2026-02-15
 // ============================================================
 
 export type WingMapItem = {
