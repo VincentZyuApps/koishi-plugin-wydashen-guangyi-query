@@ -7,16 +7,21 @@ import fs from 'fs'
 // ============================================================
 
 /**
+ * package.json 对象 (统一入口，避免多处重复读取)
+ */
+export const pkg: Record<string, any> = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf-8'))
+  } catch {
+    return { version: '0.0.0' }
+  }
+})()
+
+/**
  * 从 package.json 读取版本号
  */
 export function getPackageVersion(): string {
-  try {
-    const packageJsonPath = path.resolve(__dirname, '../package.json')
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-    return `v${packageJson.version}`
-  } catch {
-    return 'v0.0.0'
-  }
+  return `v${pkg.version}`
 }
 
 /**

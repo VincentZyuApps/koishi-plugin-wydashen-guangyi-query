@@ -5,50 +5,11 @@ import fs from 'fs'
 import os from 'os'
 import https from 'https'
 import http from 'http'
-
-// 二进制文件下载配置
-// gitee 放前面，github 放后面
-export const BINARY_DOWNLOAD_URLS: { source: string; url: string }[] = [
-  // Gitee (中国大陆优先)
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-linux-amd64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-linux-arm64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-darwin-amd64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-darwin-arm64' },
-  { source: 'gitee', url: 'https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-windows-amd64.exe' },
-  // GitHub
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-linux-amd64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-linux-arm64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-darwin-amd64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-darwin-arm64' },
-  { source: 'github', url: 'https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/{{VERSION}}/wing-renderer-windows-amd64.exe' },
-]
-
-// 获取当前平台的二进制文件名 (已废弃，使用 types.ts 中的函数)
-export function getBinaryName(): string {
-  const platform = os.platform()
-  const arch = os.arch()
-
-  let suffix = ''
-  if (platform === 'win32') {
-    suffix = '-windows-amd64.exe'
-  } else if (platform === 'darwin') {
-    suffix = arch === 'arm64' ? '-darwin-arm64' : '-darwin-amd64'
-  } else {
-    // linux
-    suffix = arch === 'arm64' ? '-linux-arm64' : '-linux-amd64'
-  }
-
-  return `wing-renderer${suffix}`
-}
-
-// 获取二进制文件路径 (已废弃，使用配置中的路径)
-export function getBinaryPath(): string {
-  return path.resolve(__dirname, '../bin', getBinaryName())
-}
+import { getDefaultGoBinaryPath, getCurrentArchDescription } from './types'
 
 // 检查二进制文件是否存在 (支持自定义路径)
 export function binaryExists(customPath?: string): boolean {
-  const binaryPath = customPath || getBinaryPath()
+  const binaryPath = customPath || getDefaultGoBinaryPath()
   return fs.existsSync(binaryPath)
 }
 
@@ -94,7 +55,7 @@ export async function renderWithGo(
     portalIconsPath?: string;
   } = {}
 ): Promise<string> {
-  const binaryPath = config.binaryPath || getBinaryPath()
+  const binaryPath = config.binaryPath || getDefaultGoBinaryPath()
 
   if (!binaryExists(binaryPath)) {
     throw new Error(`Go 渲染器二进制文件不存在: ${binaryPath}。请先下载或编译二进制文件。`)
@@ -184,47 +145,56 @@ export async function renderWithGo(
 }
 
 /**
- * 下载二进制文件
+ * 从配置的下载地址列表中，自动选择匹配当前平台的 URL 下载二进制文件
+ * @param ctx Koishi 上下文
+ * @param downloadUrls 下载地址列表（来自 config.goRendererDownloadUrls）
+ * @param savePath 保存路径（来自 config.goRendererBinaryPath）
+ * @param preferGitee 是否优先使用 Gitee（中国大陆用户推荐）
  */
 export async function downloadBinary(
   ctx: Context,
-  version: string = 'v1.0.0',
-  preferredSource: 'gitee' | 'github' = 'gitee'
+  downloadUrls: { source: string; url: string }[],
+  savePath: string,
+  preferGitee: boolean = true
 ): Promise<boolean> {
-  const binaryName = getBinaryName()
-  const binaryPath = getBinaryPath()
+  // 获取当前平台架构描述，例如 "linux-amd64", "darwin-arm64", "windows-amd64"
+  const archDesc = getCurrentArchDescription()
+  ctx.logger.info(`[Go Renderer] 当前平台: ${archDesc}`)
 
-  // 确保目录存在
-  const binDir = path.dirname(binaryPath)
-  if (!fs.existsSync(binDir)) {
-    fs.mkdirSync(binDir, { recursive: true })
+  // 从 URL 列表中筛选匹配当前平台的链接
+  const matchedUrls = downloadUrls.filter(item => item.url.includes(archDesc))
+
+  if (matchedUrls.length === 0) {
+    ctx.logger.error(`[Go Renderer] ❌ 在下载列表中未找到匹配 ${archDesc} 的链接`)
+    return false
   }
 
-  // 查找匹配的下载链接
-  const urls = BINARY_DOWNLOAD_URLS.filter(item =>
-    item.url.includes(binaryName.replace('wing-renderer', ''))
-  )
-
-  // 按优先源排序
-  urls.sort((a, b) => {
+  // 按优先源排序：gitee 优先（中国大陆网络更快）
+  const preferredSource = preferGitee ? 'gitee' : 'github'
+  matchedUrls.sort((a, b) => {
     if (a.source === preferredSource && b.source !== preferredSource) return -1
     if (a.source !== preferredSource && b.source === preferredSource) return 1
     return 0
   })
 
-  for (const { source, url } of urls) {
-    const downloadUrl = url.replace('{{VERSION}}', version)
-    ctx.logger.info(`[Go Renderer] 尝试从 ${source} 下载: ${downloadUrl}`)
+  // 确保目录存在
+  const binDir = path.dirname(savePath)
+  if (!fs.existsSync(binDir)) {
+    fs.mkdirSync(binDir, { recursive: true })
+  }
+
+  for (const { source, url } of matchedUrls) {
+    ctx.logger.info(`[Go Renderer] 尝试从 ${source} 下载: ${url}`)
 
     try {
-      await downloadFile(downloadUrl, binaryPath)
+      await downloadFile(url, savePath)
 
-      // 添加执行权限
+      // 添加执行权限 (非 Windows)
       if (os.platform() !== 'win32') {
-        fs.chmodSync(binaryPath, 0o755)
+        fs.chmodSync(savePath, 0o755)
       }
 
-      ctx.logger.info(`[Go Renderer] ✅ 下载成功: ${binaryPath}`)
+      ctx.logger.info(`[Go Renderer] ✅ 下载成功: ${savePath}`)
       return true
     } catch (error) {
       ctx.logger.warn(`[Go Renderer] 从 ${source} 下载失败: ${error}`)

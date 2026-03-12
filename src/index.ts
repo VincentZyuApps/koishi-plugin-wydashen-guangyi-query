@@ -3,22 +3,17 @@ import {} from 'koishi-plugin-puppeteer'
 import { renderWingImage } from './render_image'
 import { generateWingText } from './gen_text'
 import { generateWingForward } from './gen_forward'
-import { renderWithGo, binaryExists } from './render_go'
+import { renderWithGo, binaryExists, downloadBinary } from './render_go'
 import path from 'path'
 import fs from 'fs'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
 import { WingMapManager } from './wing_map_manager'
 import { validateAndDownloadFont } from './utils'
+import { pkg } from './types'
 import type { Config } from './config'
 
 export { Config } from './config'
 
 export const name = 'wydashen-guangyi-query'
-
-const pkg = JSON.parse(
-  readFileSync(resolve(__dirname, '../package.json'), 'utf-8')
-)
 
 export const usage = `
 <h1>Koishi 插件：wydashen-guangyi-query 🕊️</h1>
@@ -342,10 +337,15 @@ export function apply(ctx: Context, config: Config) {
         }
       }
 
-      // 检查二进制是否存在
+      // 检查二进制是否存在，不存在则自动下载
       if (!binaryExists(config.goRendererBinaryPath)) {
-        await session.send(`${h.quote(session.messageId)}❌ Go 渲染器二进制文件不存在。请先下载或编译: ${config.goRendererBinaryPath}`)
-        return;
+        await session.send(`${h.quote(session.messageId)}📥 Go 渲染器未找到，正在自动下载...`)
+        const success = await downloadBinary(ctx, config.goRendererDownloadUrls, config.goRendererBinaryPath)
+        if (!success) {
+          await session.send(`${h.quote(session.messageId)}❌ Go 渲染器自动下载失败，请检查网络或手动下载: ${config.goRendererBinaryPath}`)
+          return;
+        }
+        await session.send(`${h.quote(session.messageId)}✅ Go 渲染器下载成功！`)
       }
 
       const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询 (Go 渲染器)，请稍候...`);
