@@ -1,4 +1,4 @@
-![koishi-plugin-wydashen-guangyi-query](https://socialify.git.ci/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/image?description=1&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&name=1&owner=1&pattern=Plus&stargazers=1&theme=Auto)
+![koishi-plugin-wydashen-guangyi-query](https://socialify.git.ci/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/image?description=1&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Ff%2Ff3%2FKoishi.js_Logo.png%2F330px-Koishi.js_Logo.png%3F_%3D20230331182243&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
 
 # koishi-plugin-wydashen-guangyi-query 🕊️
 

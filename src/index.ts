@@ -19,7 +19,7 @@ export const name = 'wydashen-guangyi-query'
 export const usage = `
 <h1>Koishi 插件：wydashen-guangyi-query 🕊️</h1>
 <h2>🎯 插件版本：<span style="color: #ff6b6b; font-weight: bold;">v${pkg.version}</span></h2>
-<p><del>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉（已满/已G）</del></p>
+<p><del>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉（已G）</del></p>
 <p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b style="color: #50c878;">1085190201</b> 🎉</p>
 <p>光遇 bot 交流 QQ 群：<b style="color: #50c878;">475328908</b></p>
 <p style="color: #e74c3c;">⚠️ 如果查询光翼的后端挂了，请到群里找 <b>vincentzyu</b> 反馈~</p>
