@@ -10,7 +10,7 @@
 
 ## 🔑 关键词
 
-| Commit 信息中的关键词 | 构建（5 平台） | GitHub Release | 同步到 Gitee Release |
+| Commit 信息中的关键词 | 构建（8 平台） | GitHub Release | 同步到 Gitee Release |
 |----------------------|:---:|:---:|:---:|
 | （无关键词） | ❌ | ❌ | ❌ |
 | `build go action` | ✅ | ❌ | ❌ |
@@ -57,11 +57,16 @@ git commit -m "feat: add dark mode support"
 
 | 平台 | 架构 | GOOS/GOARCH | 说明 |
 |------|:---:|-------------|------|
-| Linux | x64 | `linux/amd64` | 大部分云服务器和桌面 Linux |
-| Linux | ARM64 | `linux/arm64` | ARM64 服务器 / 树莓派等单板机 |
-| macOS | Intel | `darwin/amd64` | Intel Mac（2020 年及更早） |
-| macOS | Apple Silicon | `darwin/arm64` | M 系列芯片的 Mac（2020 年末至今） |
-| Windows | x64 | `windows/amd64` | 一般 Windows 桌面 |
+| Linux | x64 | `linux/amd64` | 纯 Go 静态编译，主要用于大部分云服务器和桌面 Linux（x86_64 市场主流） |
+| Linux | ARM64 | `linux/arm64` | 纯 Go 交叉编译，主要用于 ARM64 服务器 / 单板机（树莓派、Oracle Cloud ARM 等） |
+| macOS | Intel | `darwin/amd64` | 纯 Go 交叉编译，主要用于 Intel Mac（2020 年及更早的老款 Mac） |
+| macOS | Apple Silicon | `darwin/arm64` | 纯 Go 交叉编译，主要用于 M 系列芯片的 Mac（2020 年末至今的所有新款 Mac） |
+| Windows | x64 | `windows/amd64` | 纯 Go 交叉编译，主要用于一般 Windows 桌面（桌面市场主流） |
+| Windows | ARM64 | `windows/arm64` | 纯 Go 交叉编译，主要用于 ARM Windows 设备（高通骁龙 X Elite/Plus 笔记本、Surface Pro X 等） |
+| Android | ARM64 | `android/arm64` | `CGO_ENABLED=0` 纯 Go 静态编译，主要用于 Termux（ARM 手机 / 平板） |
+| Android | x64 | `android/amd64` | `CGO_ENABLED=0` 纯 Go 静态编译，主要用于模拟器 / Chromebook（Termux） |
+
+> **说明：** 所有 8 个平台均在同一个 Ubuntu runner 上通过 Go 交叉编译完成，只需设置 `GOOS` / `GOARCH` 环境变量，无需 NDK、MSVC 等外部工具链。Android 目标额外设置 `CGO_ENABLED=0` 以确保纯静态链接。
 
 ---
 
@@ -79,7 +84,7 @@ check ──→ build ──→ release ──→ sync-gitee-release
   │         │         ├─ 生成 release notes
   │         │         └─ 创建 GitHub Release
   │         │
-  │         ├─ 编译 5 个平台目标
+  │         ├─ 编译 8 个平台目标
   │         └─ 上传构建产物 (Artifact)
   │
   └─→ sync-gitee-code（与 check 并行，每次 push 触发）
@@ -98,7 +103,7 @@ flowchart TB
     end
 
     subgraph build["build"]
-        B1[编译 5 个平台]
+        B1[编译 8 个平台]
         B2[上传构建产物]
     end
 
@@ -140,7 +145,7 @@ flowchart TB
 ### sync-gitee-release — Release 镜像
 
 **在 `release` job 成功后运行**：
-1. 从 GitHub Release 下载所有附件（5 个平台的二进制文件）
+1. 从 GitHub Release 下载所有附件（8 个平台的二进制文件）
 2. 通过 Gitee API 在 Gitee 上创建对应的 Release
 3. 将所有二进制附件上传到 Gitee Release
 4. 支持重试机制（每个文件最多 3 次，超时 20 分钟）

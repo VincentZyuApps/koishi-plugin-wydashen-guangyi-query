@@ -29,9 +29,11 @@ jobs:
           MSG="${{ github.event.head_commit.message }}"
           
           # 从 package.json 提取版本号（根目录的 package.json）
-          VERSION="v$(cat package.json | grep '"version"' | head -1 | sed 's/.*: "\(.*\)".*/\1/')"
+          # 去掉 semver build metadata（+xxx），避免 + 字符导致 URL/API 问题
+          RAW_VERSION=$(cat package.json | grep '"version"' | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+          VERSION="v${RAW_VERSION%%+*}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "📦 Version: $VERSION"
+          echo "📦 Version: $VERSION (raw: $RAW_VERSION)"
           
           # PR 始终构建
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -119,6 +121,15 @@ jobs:
           echo "🔨 Building windows/amd64..."
           GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o ../bin/wing-renderer-windows-amd64-$VERSION.exe .
           
+          echo "🔨 Building windows/arm64..."
+          GOOS=windows GOARCH=arm64 go build -ldflags "$LDFLAGS" -o ../bin/wing-renderer-windows-arm64-$VERSION.exe .
+          
+          echo "🔨 Building android/arm64 (Termux)..."
+          CGO_ENABLED=0 GOOS=android GOARCH=arm64 go build -ldflags "$LDFLAGS" -o ../bin/wing-renderer-android-arm64-$VERSION .
+          
+          echo "🔨 Building android/amd64 (Termux x86_64)..."
+          CGO_ENABLED=0 GOOS=android GOARCH=amd64 go build -ldflags "$LDFLAGS" -o ../bin/wing-renderer-android-amd64-$VERSION .
+          
           echo "✅ All platforms built!"
           ls -la ../bin/
 
@@ -185,6 +196,9 @@ jobs:
             echo "| macOS | Intel | [\`wing-renderer-darwin-amd64-${VERSION}\`](${BASE_URL}/wing-renderer-darwin-amd64-${VERSION}) |"
             echo "| macOS | Apple Silicon | [\`wing-renderer-darwin-arm64-${VERSION}\`](${BASE_URL}/wing-renderer-darwin-arm64-${VERSION}) |"
             echo "| Windows | x64 | [\`wing-renderer-windows-amd64-${VERSION}.exe\`](${BASE_URL}/wing-renderer-windows-amd64-${VERSION}.exe) |"
+            echo "| Windows | ARM64 | [\`wing-renderer-windows-arm64-${VERSION}.exe\`](${BASE_URL}/wing-renderer-windows-arm64-${VERSION}.exe) |"
+            echo "| Android | ARM64 | [\`wing-renderer-android-arm64-${VERSION}\`](${BASE_URL}/wing-renderer-android-arm64-${VERSION}) |"
+            echo "| Android | x64 | [\`wing-renderer-android-amd64-${VERSION}\`](${BASE_URL}/wing-renderer-android-amd64-${VERSION}) |"
             echo ""
             echo "### 🔧 使用方法"
             echo ""
@@ -242,8 +256,8 @@ jobs:
   # 在 release 完成后运行
   sync-gitee-release:
     name: 【Gitee码云】Sync Release File
-    needs: [check, release]
-    if: needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
+    needs: [check, release, sync-gitee-code]
+    if: always() && needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
     runs-on: ubuntu-latest
     env:
       GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
@@ -278,7 +292,8 @@ jobs:
           TAG="${{ steps.release_info.outputs.tag }}"
           mkdir -p assets
           cd assets
-          gh release download "$TAG" --pattern "*"
+          # 只下载 Go 渲染器二进制，跳过源码包和其他附件
+          gh release download "$TAG" --pattern "wing-renderer-*"
           echo "📥 Downloaded files:"
           ls -la
 
