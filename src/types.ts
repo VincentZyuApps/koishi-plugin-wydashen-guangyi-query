@@ -8,13 +8,26 @@ import fs from 'fs'
 
 /**
  * package.json 对象 (统一入口，避免多处重复读取)
+ * 支持多种路径查找方式，确保开发环境和打包后都能正确读取
  */
 export const pkg: Record<string, any> = (() => {
-  try {
-    return JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf-8'))
-  } catch {
-    return { version: '0.0.0' }
+  const possiblePaths = [
+    path.resolve(__dirname, '../package.json'),           // 打包后: lib/../package.json = 根目录
+    path.resolve(__dirname, '../../package.json'),         // 备用: lib/../../package.json
+    path.resolve(process.cwd(), 'package.json'),         // 工作目录
+  ]
+  
+  for (const p of possiblePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf-8'))
+      }
+    } catch {
+      continue
+    }
   }
+  
+  return { version: '0.0.0' }
 })()
 
 /**

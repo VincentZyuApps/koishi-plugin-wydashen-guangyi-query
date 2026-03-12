@@ -8,8 +8,9 @@ import path from 'path'
 import fs from 'fs'
 import { WingMapManager } from './wing_map_manager'
 import { validateAndDownloadFont } from './utils'
-import { pkg } from './types'
+import { pkg, getPackageVersion, getDefaultGoBinaryPath, getCurrentArchDescription, GO_RENDERER_DOWNLOAD_URLS } from './types'
 import type { Config } from './config'
+import { spawn } from 'child_process'
 
 export { Config } from './config'
 
@@ -422,6 +423,98 @@ export function apply(ctx: Context, config: Config) {
         return;
       } finally {
         await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0]);
+      }
+    })
+
+  ctx.command('校验go渲染器')
+    .alias('verify-go-renderer')
+    .action(async ({ session }) => {
+      const expectedVersion = getPackageVersion()
+      const expectedBinaryPath = getDefaultGoBinaryPath()
+      const currentArch = getCurrentArchDescription()
+      const expectedBinaryName = path.basename(expectedBinaryPath)
+      
+      let msg = `🔍 Go 渲染器校验报告\n\n`
+      msg += `📋 预期版本: ${expectedVersion}\n`
+      msg += `🖥️  当前平台: ${currentArch}\n`
+      msg += `📂 预期路径: ${expectedBinaryPath}\n\n`
+      
+      const binaryExistsCheck = fs.existsSync(expectedBinaryPath)
+      msg += `📄 二进制文件: ${binaryExistsCheck ? '✅ 存在' : '❌ 不存在'}\n`
+      
+      if (!binaryExistsCheck) {
+        msg += `\n⚙️ 正在自动下载...\n`
+        await session.send(h.quote(session.messageId) + msg)
+        
+        const success = await downloadBinary(ctx, GO_RENDERER_DOWNLOAD_URLS, expectedBinaryPath)
+        
+        if (success) {
+          msg = `✅ Go 渲染器下载成功！\n\n`
+          msg += `📂 已保存到: ${expectedBinaryPath}\n`
+          
+          fs.chmodSync(expectedBinaryPath, 0o755)
+          msg += `🔧 已设置执行权限\n`
+          
+          msg += `\n📝 请在 Koishi 后台重新保存插件配置以更新配置项`
+          
+          await session.send(h.quote(session.messageId) + msg)
+          return
+        } else {
+          msg += `\n❌ 下载失败，请检查网络或手动下载`
+          await session.send(h.quote(session.messageId) + msg)
+          return
+        }
+      }
+      
+      try {
+        const { stdout } = await new Promise<{ stdout: string }>((resolve, reject) => {
+          const child = spawn(expectedBinaryPath, ['--version'], { stdio: ['pipe', 'pipe', 'pipe'] })
+          let stdout = ''
+          let stderr = ''
+          
+          child.stdout.on('data', (data) => { stdout += data.toString() })
+          child.stderr.on('data', (data) => { stderr += data.toString() })
+          
+          child.on('close', (code) => {
+            if (code === 0) resolve({ stdout })
+            else reject(new Error(stderr || `exit code ${code}`))
+          })
+          
+          child.on('error', reject)
+          setTimeout(() => { child.kill(); reject(new Error('timeout')) }, 5000)
+        })
+        
+        const actualVersion = stdout.trim()
+        const versionMatch = actualVersion.includes(expectedVersion.replace('v', ''))
+        
+        msg += `🏷️  二进制版本: ${actualVersion}\n`
+        msg += `✅ 版本匹配: ${versionMatch ? '是' : '否'}\n`
+        
+        if (!versionMatch) {
+          msg += `\n⚠️ 版本不匹配，正在重新下载...\n`
+          await session.send(h.quote(session.messageId) + msg)
+          
+          fs.unlinkSync(expectedBinaryPath)
+          const success = await downloadBinary(ctx, GO_RENDERER_DOWNLOAD_URLS, expectedBinaryPath)
+          
+          if (success) {
+            msg = `✅ Go 渲染器重新下载成功！\n\n`
+            msg += `📂 已保存到: ${expectedBinaryPath}\n`
+            fs.chmodSync(expectedBinaryPath, 0o755)
+            msg += `🔧 已设置执行权限\n`
+            msg += `\n📝 请在 Koishi 后台重新保存插件配置`
+            await session.send(h.quote(session.messageId) + msg)
+            return
+          }
+        }
+        
+        msg += `\n✅ Go 渲染器校验通过！`
+        await session.send(h.quote(session.messageId) + msg)
+        
+      } catch (error) {
+        msg += `\n❌ 读取版本失败: ${error instanceof Error ? error.message : String(error)}\n`
+        msg += `可能是权限问题或文件损坏`
+        await session.send(h.quote(session.messageId) + msg)
       }
     })
 
