@@ -455,7 +455,13 @@ export function apply(ctx: Context, config: Config) {
           fs.chmodSync(expectedBinaryPath, 0o755)
           msg += `🔧 已设置执行权限\n`
           
-          msg += `\n📝 请在 Koishi 后台重新保存插件配置以更新配置项`
+          // 💾 自动更新配置项
+          ctx.scope.update({
+            goRendererBinaryPath: expectedBinaryPath,
+            goRendererDownloadUrls: GO_RENDERER_DOWNLOAD_URLS
+          }, false)
+          msg += `💾 配置项已自动更新\n`
+          msg += `\n✅ Go 渲染器校验通过，可正常使用！`
           
           await session.send(h.quote(session.messageId) + msg)
           return
@@ -502,7 +508,14 @@ export function apply(ctx: Context, config: Config) {
             msg += `📂 已保存到: ${expectedBinaryPath}\n`
             fs.chmodSync(expectedBinaryPath, 0o755)
             msg += `🔧 已设置执行权限\n`
-            msg += `\n📝 请在 Koishi 后台重新保存插件配置`
+            
+            // 💾 自动更新配置项
+            ctx.scope.update({
+              goRendererBinaryPath: expectedBinaryPath,
+              goRendererDownloadUrls: GO_RENDERER_DOWNLOAD_URLS
+            }, false)
+            msg += `💾 配置项已自动更新\n`
+            msg += `\n✅ Go 渲染器校验通过，可正常使用！`
             await session.send(h.quote(session.messageId) + msg)
             return
           }
