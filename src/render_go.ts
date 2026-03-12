@@ -81,48 +81,63 @@ export async function renderWithGo(
 
   ctx.logger.debug(`[Go Renderer] 调用渲染器，角色ID: ${roleId}, 光翼数: ${wingBuffs.length}`)
 
-  try {
-    // 调用 Go 二进制，使用 spawn 以便写入 stdin
-    const { stdout, stderr } = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-      const child = spawn(binaryPath, [], {
-        stdio: ['pipe', 'pipe', 'pipe'],
+  const maxRetries = 3
+  const retryDelay = 1000 // 1秒
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // 检查文件状态
+      const stats = fs.statSync(binaryPath)
+      ctx.logger.debug(`[Go Renderer] 二进制文件状态: size=${stats.size}, mode=${stats.mode.toString(8)}`)
+      
+      // 尝试杀死可能残留的同名进程（避免 Text file busy）
+      try {
+        const { execSync } = require('child_process')
+        execSync(`pkill -f "wing-renderer-linux-amd64" 2>/dev/null || true`, { stdio: 'ignore' })
+        await new Promise(resolve => setTimeout(resolve, 200))
+      } catch (e) { /* ignore */ }
+      
+      // 调用 Go 二进制，使用 spawn 以便写入 stdin
+      const { stdout, stderr } = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+        const child = spawn(binaryPath, [], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        })
+
+        let stdout = ''
+        let stderr = ''
+
+        child.stdout.on('data', (data) => {
+          stdout += data.toString()
+        })
+
+        child.stderr.on('data', (data) => {
+          stderr += data.toString()
+        })
+
+        child.on('error', (err) => {
+          reject(err)
+        })
+
+        child.on('close', (code) => {
+          if (code !== 0) {
+            reject(new Error(`Go 渲染器退出码: ${code}, stderr: ${stderr}`))
+          } else {
+            resolve({ stdout, stderr })
+          }
+        })
+
+        // 设置超时
+        const timeout = setTimeout(() => {
+          child.kill()
+          reject(new Error('Go 渲染器超时 (30秒)'))
+        }, 30000)
+
+        child.on('close', () => clearTimeout(timeout))
+
+        // 写入 stdin
+        child.stdin.write(inputJson)
+        child.stdin.end()
       })
-
-      let stdout = ''
-      let stderr = ''
-
-      child.stdout.on('data', (data) => {
-        stdout += data.toString()
-      })
-
-      child.stderr.on('data', (data) => {
-        stderr += data.toString()
-      })
-
-      child.on('error', (err) => {
-        reject(err)
-      })
-
-      child.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(`Go 渲染器退出码: ${code}, stderr: ${stderr}`))
-        } else {
-          resolve({ stdout, stderr })
-        }
-      })
-
-      // 设置超时
-      const timeout = setTimeout(() => {
-        child.kill()
-        reject(new Error('Go 渲染器超时 (30秒)'))
-      }, 30000)
-
-      child.on('close', () => clearTimeout(timeout))
-
-      // 写入 stdin
-      child.stdin.write(inputJson)
-      child.stdin.end()
-    })
 
     if (stderr) {
       ctx.logger.warn(`[Go Renderer] stderr: ${stderr}`)
@@ -138,9 +153,18 @@ export async function renderWithGo(
     ctx.logger.debug(`[Go Renderer] 渲染成功，格式: ${output.format}`)
 
     return output.data // base64 编码的 PNG
-  } catch (error) {
-    ctx.logger.error(`[Go Renderer] 渲染失败: ${error}`)
-    throw error
+    } catch (error) {
+      ctx.logger.warn(`[Go Renderer] 第 ${attempt}/${maxRetries} 次尝试失败: ${error}`)
+      
+      if (attempt < maxRetries) {
+        ctx.logger.info(`[Go Renderer] 等待 ${retryDelay}ms 后重试...`)
+        await new Promise(resolve => setTimeout(resolve, retryDelay))
+        continue
+      }
+      
+      ctx.logger.error(`[Go Renderer] 渲染失败: ${error}`)
+      throw error
+    }
   }
 }
 
@@ -183,11 +207,22 @@ export async function downloadBinary(
     fs.mkdirSync(binDir, { recursive: true })
   }
 
+  // 生成临时文件名（带时间戳，避免文件被占用）
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19).replace('T', '_')
+
   for (const { source, url } of matchedUrls) {
     ctx.logger.info(`[Go Renderer] 尝试从 ${source} 下载: ${url}`)
 
     try {
-      await downloadFile(url, savePath)
+      // 下载到临时文件
+      const tempPath = `${savePath}.tmp.${timestamp}`
+      await downloadFile(url, tempPath)
+
+      // 复制到正式文件名（覆盖旧文件）
+      fs.copyFileSync(tempPath, savePath)
+
+      // 删除临时文件
+      fs.unlinkSync(tempPath)
 
       // 添加执行权限 (非 Windows)
       if (os.platform() !== 'win32') {
