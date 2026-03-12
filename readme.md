@@ -23,6 +23,12 @@
 
 **Go 渲染器下载 (支持 Windows / Linux / macOS - x86 / ARM)**
 
+> ⚠️ Linux/macOS 如遇权限问题（如 `spawn ETXTBSY`），可执行：
+> ```bash
+> chmod +x wing-renderer-linux-amd64-v.x.x.x
+> chmod +x wing-renderer-darwin-amd64-v.x.x.x
+> ```
+
 [![GitHub Releases](https://img.shields.io/badge/GitHub-Go_Renderer_Binary-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases)
 [![Gitee Releases](https://img.shields.io/badge/Gitee-Go_Renderer_Binary-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases)
 

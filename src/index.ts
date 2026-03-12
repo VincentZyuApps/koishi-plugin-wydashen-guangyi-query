@@ -19,8 +19,9 @@ export const name = 'wydashen-guangyi-query'
 export const usage = `
 <h1>Koishi 插件：wydashen-guangyi-query 🕊️</h1>
 <h2>🎯 插件版本：<span style="color: #ff6b6b; font-weight: bold;">v${pkg.version}</span></h2>
-<p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b style="color: #50c878;">259248174</b></p>
-<p>nonebot koishi zerobot，py js go， sky光遇bot交流qq群：<b style="color: #50c878;">475328908</b></p>
+<p><del>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉（已满/已G）</del></p>
+<p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b style="color: #50c878;">1085190201</b> 🎉</p>
+<p>光遇 bot 交流 QQ 群：<b style="color: #50c878;">475328908</b></p>
 <p style="color: #e74c3c;">⚠️ 如果查询光翼的后端挂了，请到群里找 <b>vincentzyu</b> 反馈~</p>
 
 <hr>
@@ -43,6 +44,7 @@ export const usage = `
 <ul>
   <li><b style="color: #9b59b6;">Puppeteer 渲染</b> — 默认方式，需要 puppeteer 服务，效果精美</li>
   <li><b style="color: #2ecc71;">Go 渲染器</b> — 可选方式，无需 Puppeteer，性能更高，支持深色模式</li>
+  <li style="color: #e74c3c;">⚠️ Linux/macOS 如遇 <code>spawn ETXTBSY</code> 权限错误，可尝试：<code>chmod +x wing-renderer-{os}-{arch}-{version}</code></li>
 </ul>
 
 <hr>
@@ -427,16 +429,33 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.command('校验go渲染器')
-    .alias('verify-go-renderer')
-    .action(async ({ session }) => {
-      const expectedVersion = getPackageVersion()
-      const expectedBinaryPath = getDefaultGoBinaryPath()
+    .alias('awa-verify-go-renderer')
+    .alias('avgr')
+    .option('source', '-s [value:string]', { fallback: 'github' })
+    .option('version', '-v [value:string]', { fallback: '' })
+    .option('os', '-o [value:string]', { fallback: '' })
+    .option('arch', '-a [value:string]', { fallback: '' })
+    .action(async ({ session, options }) => {
       const currentArch = getCurrentArchDescription()
-      const expectedBinaryName = path.basename(expectedBinaryPath)
+      const currentPlatform = currentArch.split('-')[0]
+      const currentArchName = currentArch.split('-')[1]
+      
+      const expectedVersion = options.version ? `v${options.version}` : getPackageVersion()
+      const source = options.source || 'github'
+      const osName = options.os || currentPlatform
+      const archName = options.arch || currentArchName
+      const archDesc = `${osName}-${archName}`
+      
+      const versionWithoutV = expectedVersion.replace('v', '')
+      const ext = osName === 'windows' ? '.exe' : ''
+      const binaryName = `wing-renderer-${osName}-${archName}-${expectedVersion}${ext}`
+      const saveDir = path.dirname(getDefaultGoBinaryPath())
+      const expectedBinaryPath = path.resolve(saveDir, binaryName)
       
       let msg = `🔍 Go 渲染器校验报告\n\n`
       msg += `📋 预期版本: ${expectedVersion}\n`
-      msg += `🖥️  当前平台: ${currentArch}\n`
+      msg += `📥 下载源: ${source}\n`
+      msg += `🖥️  目标平台: ${archDesc}\n`
       msg += `📂 预期路径: ${expectedBinaryPath}\n\n`
       
       const binaryExistsCheck = fs.existsSync(expectedBinaryPath)
@@ -446,7 +465,21 @@ export function apply(ctx: Context, config: Config) {
         msg += `\n⚙️ 正在自动下载...\n`
         await session.send(h.quote(session.messageId) + msg)
         
-        const success = await downloadBinary(ctx, GO_RENDERER_DOWNLOAD_URLS, expectedBinaryPath)
+        // 根据参数动态生成下载 URL
+        const GITEE_BASE = `https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/${expectedVersion}`
+        const GITHUB_BASE = `https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/${expectedVersion}`
+        
+        const downloadUrls = [
+          { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-${osName}-${archName}-${expectedVersion}${ext}` },
+          { source: 'github', url: `${GITHUB_BASE}/wing-renderer-${osName}-${archName}-${expectedVersion}${ext}` },
+        ]
+        
+        // 根据 source 排序
+        if (source === 'gitee') {
+          downloadUrls.sort((a, b) => a.source === 'gitee' ? -1 : 1)
+        }
+        
+        const success = await downloadBinary(ctx, downloadUrls, expectedBinaryPath)
         
         if (success) {
           msg = `✅ Go 渲染器下载成功！\n\n`
@@ -455,12 +488,6 @@ export function apply(ctx: Context, config: Config) {
           fs.chmodSync(expectedBinaryPath, 0o755)
           msg += `🔧 已设置执行权限\n`
           
-          // 💾 自动更新配置项
-          ctx.scope.update({
-            goRendererBinaryPath: expectedBinaryPath,
-            goRendererDownloadUrls: GO_RENDERER_DOWNLOAD_URLS
-          }, false)
-          msg += `💾 配置项已自动更新\n`
           msg += `\n✅ Go 渲染器校验通过，可正常使用！`
           
           await session.send(h.quote(session.messageId) + msg)
@@ -501,20 +528,26 @@ export function apply(ctx: Context, config: Config) {
           await session.send(h.quote(session.messageId) + msg)
           
           fs.unlinkSync(expectedBinaryPath)
-          const success = await downloadBinary(ctx, GO_RENDERER_DOWNLOAD_URLS, expectedBinaryPath)
+          
+          // 重新生成下载 URL
+          const GITEE_BASE = `https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases/download/${expectedVersion}`
+          const GITHUB_BASE = `https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases/download/${expectedVersion}`
+          const ext = osName === 'windows' ? '.exe' : ''
+          const retryUrls = [
+            { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-${osName}-${archName}-${expectedVersion}${ext}` },
+            { source: 'github', url: `${GITHUB_BASE}/wing-renderer-${osName}-${archName}-${expectedVersion}${ext}` },
+          ]
+          if (source === 'gitee') {
+            retryUrls.sort((a, b) => a.source === 'gitee' ? -1 : 1)
+          }
+          
+          const success = await downloadBinary(ctx, retryUrls, expectedBinaryPath)
           
           if (success) {
             msg = `✅ Go 渲染器重新下载成功！\n\n`
             msg += `📂 已保存到: ${expectedBinaryPath}\n`
             fs.chmodSync(expectedBinaryPath, 0o755)
             msg += `🔧 已设置执行权限\n`
-            
-            // 💾 自动更新配置项
-            ctx.scope.update({
-              goRendererBinaryPath: expectedBinaryPath,
-              goRendererDownloadUrls: GO_RENDERER_DOWNLOAD_URLS
-            }, false)
-            msg += `💾 配置项已自动更新\n`
             msg += `\n✅ Go 渲染器校验通过，可正常使用！`
             await session.send(h.quote(session.messageId) + msg)
             return
