@@ -18,10 +18,13 @@ export const pkg: Record<string, any> = (() => {
 })()
 
 /**
- * 从 package.json 读取版本号
+ * 从 package.json 读取版本号（用于 Release tag 和二进制文件名）
+ * 自动去掉 semver build metadata（+xxx），避免 URL 中出现 + 字符
+ * 例如: 0.4.1-beta.7+20260313 → v0.4.1-beta.7
  */
 export function getPackageVersion(): string {
-  return `v${pkg.version}`
+  const version = String(pkg.version).split('+')[0]
+  return `v${version}`
 }
 
 /**
@@ -43,6 +46,8 @@ export function getGoBinaryName(): string {
     ext = '.exe'
   } else if (platform === 'darwin') {
     osName = 'darwin'
+  } else if (platform === 'android') {
+    osName = 'android'
   }
 
   if (arch === 'arm64' || arch === 'aarch64') {
@@ -71,6 +76,7 @@ export function getCurrentArchDescription(): string {
   let osName = 'linux'
   if (platform === 'win32') osName = 'windows'
   else if (platform === 'darwin') osName = 'darwin'
+  else if (platform === 'android') osName = 'android'
 
   const archName = (arch === 'arm64' || arch === 'aarch64') ? 'arm64' : 'amd64'
 
@@ -90,12 +96,18 @@ export const GO_RENDERER_DOWNLOAD_URLS = [
   { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-darwin-amd64-${_version}` },
   { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-darwin-arm64-${_version}` },
   { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-windows-amd64-${_version}.exe` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-windows-arm64-${_version}.exe` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-android-arm64-${_version}` },
+  { source: 'gitee', url: `${GITEE_BASE}/wing-renderer-android-amd64-${_version}` },
   // GitHub
   { source: 'github', url: `${GITHUB_BASE}/wing-renderer-linux-amd64-${_version}` },
   { source: 'github', url: `${GITHUB_BASE}/wing-renderer-linux-arm64-${_version}` },
   { source: 'github', url: `${GITHUB_BASE}/wing-renderer-darwin-amd64-${_version}` },
   { source: 'github', url: `${GITHUB_BASE}/wing-renderer-darwin-arm64-${_version}` },
   { source: 'github', url: `${GITHUB_BASE}/wing-renderer-windows-amd64-${_version}.exe` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-windows-arm64-${_version}.exe` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-android-arm64-${_version}` },
+  { source: 'github', url: `${GITHUB_BASE}/wing-renderer-android-amd64-${_version}` },
 ];
 
 // ============================================================
