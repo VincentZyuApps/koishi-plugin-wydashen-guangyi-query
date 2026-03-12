@@ -12,7 +12,7 @@
 
 <p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉（这个群G了</del></p>
 <p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
-<p>🤖 nonebot koishi zerobot，py js go，sky光遇bot交流qq群：<b>475328908</b></p>
+<p>🤖 Nonebot Koishi Zerobot... py js go... sky光遇bot交流qq群：<b>475328908</b></p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
 > ⚠️ 如果查询光翼的后端挂了，请到群里找 **vincentzyu** 反馈~

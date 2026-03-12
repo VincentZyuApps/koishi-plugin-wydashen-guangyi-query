@@ -310,10 +310,7 @@ jobs:
           
           # 过滤：确保只保留 Go 渲染器二进制文件，排除任何其他文件
           echo "🧹 Filtering to only keep Go renderer binaries..."
-          ls -1 | grep -v '^wing-renderer-' | while read f; do
-            echo "   Removing non-binary file: $f"
-            rm -f "$f"
-          done
+          find . -mindepth 1 ! -name 'wing-renderer-*' -exec rm -rf {} + 2>/dev/null || true
           echo "✅ Filtered files:"
           ls -la
 
