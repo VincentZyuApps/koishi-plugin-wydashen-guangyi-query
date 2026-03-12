@@ -171,6 +171,14 @@ jobs:
           gh release delete "$VERSION" --yes --cleanup-tag 2>/dev/null || echo "No existing release to delete"
           sleep 3
 
+      - name: Clean up old assets in repository
+        run: |
+          # 确保 bin 目录只包含本次构建的二进制文件
+          VERSION="${{ needs.check.outputs.version }}"
+          rm -rf bin/*
+          mkdir -p bin
+          echo "🧹 Cleaned bin directory for fresh build"
+
       - name: Generate release notes
         run: |
           VERSION="${{ needs.check.outputs.version }}"
@@ -293,8 +301,20 @@ jobs:
           mkdir -p assets
           cd assets
           # 只下载 Go 渲染器二进制，跳过源码包和其他附件
-          gh release download "$TAG" --pattern "wing-renderer-*"
+          # 使用更精确的 pattern 确保只下载二进制文件
+          for f in wing-renderer-linux-* wing-renderer-darwin-* wing-renderer-windows-* wing-renderer-android-*; do
+            gh release download "$TAG" --pattern "$f" 2>/dev/null || true
+          done
           echo "📥 Downloaded files:"
+          ls -la
+          
+          # 过滤：确保只保留 Go 渲染器二进制文件，排除任何其他文件
+          echo "🧹 Filtering to only keep Go renderer binaries..."
+          ls -1 | grep -v '^wing-renderer-' | while read f; do
+            echo "   Removing non-binary file: $f"
+            rm -f "$f"
+          done
+          echo "✅ Filtered files:"
           ls -la
 
       - name: Create or find Gitee Release
