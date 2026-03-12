@@ -53,6 +53,24 @@ jobs:
             echo "should_release=false" >> "$GITHUB_OUTPUT"
           fi
 
+  # ── 同步代码到 Gitee ─────────────────────────────────────
+  # 每次 push 都同步，与 check 并行运行
+  sync-gitee-code:
+    name: 【Gitee码云】Sync Code Commit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Mirror to Gitee
+        uses: Yikun/hub-mirror-action@v1.5
+        with:
+          src: github/VincentZyuApps
+          dst: gitee/vincent-zyu
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_TOKEN }}
+          static_list: "koishi-plugin-wydashen-guangyi-query"
+          force_update: true
+          debug: true
+
   # ── 多平台构建 ───────────────────────────────────────────
   build:
     name: Build Go Renderer
@@ -145,6 +163,8 @@ jobs:
       - name: Generate release notes
         run: |
           VERSION="${{ needs.check.outputs.version }}"
+          REPO="${{ github.repository }}"
+          BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
           
           # 查找上一个 release tag（排除当前版本）
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${VERSION}$" | head -1)
@@ -160,11 +180,11 @@ jobs:
             echo ""
             echo "| 平台 | 架构 | 文件名 |"
             echo "|------|------|--------|"
-            echo "| Linux | x64 | \`wing-renderer-linux-amd64-${VERSION}\` |"
-            echo "| Linux | ARM64 | \`wing-renderer-linux-arm64-${VERSION}\` |"
-            echo "| macOS | Intel | \`wing-renderer-darwin-amd64-${VERSION}\` |"
-            echo "| macOS | Apple Silicon | \`wing-renderer-darwin-arm64-${VERSION}\` |"
-            echo "| Windows | x64 | \`wing-renderer-windows-amd64-${VERSION}.exe\` |"
+            echo "| Linux | x64 | [\`wing-renderer-linux-amd64-${VERSION}\`](${BASE_URL}/wing-renderer-linux-amd64-${VERSION}) |"
+            echo "| Linux | ARM64 | [\`wing-renderer-linux-arm64-${VERSION}\`](${BASE_URL}/wing-renderer-linux-arm64-${VERSION}) |"
+            echo "| macOS | Intel | [\`wing-renderer-darwin-amd64-${VERSION}\`](${BASE_URL}/wing-renderer-darwin-amd64-${VERSION}) |"
+            echo "| macOS | Apple Silicon | [\`wing-renderer-darwin-arm64-${VERSION}\`](${BASE_URL}/wing-renderer-darwin-arm64-${VERSION}) |"
+            echo "| Windows | x64 | [\`wing-renderer-windows-amd64-${VERSION}.exe\`](${BASE_URL}/wing-renderer-windows-amd64-${VERSION}.exe) |"
             echo ""
             echo "### 🔧 使用方法"
             echo ""
@@ -182,7 +202,7 @@ jobs:
             if [ -n "$PREV_TAG" ]; then
               echo "Changes since **${PREV_TAG}**:"
               echo ""
-              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (\`%h\`)" --reverse | head -20
+              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (\`%h\`) — @%an" --reverse | head -20
             else
               echo "Initial release"
             fi
@@ -193,7 +213,14 @@ jobs:
             echo ""
             echo "### 📊 Build Info"
             echo "- **Build date**: $(date -u '+%Y-%m-%d %H:%M UTC')"
-            echo "- **Commit**: [\`${GITHUB_SHA::7}\`](https://github.com/${{ github.repository }}/commit/${GITHUB_SHA})"
+            echo "- **Commit**: [\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
+            echo ""
+            
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/${REPO}/compare/${PREV_TAG}...${VERSION}"
+            else
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${VERSION}"
+            fi
           } > release_notes.md
           
           echo "📝 Generated release notes:"
@@ -210,3 +237,194 @@ jobs:
             --notes-file release_notes.md \
             --latest \
             ./artifacts/wing-renderer-*
+
+  # ── 同步 Release 到 Gitee ─────────────────────────────────
+  # 在 release 完成后运行
+  sync-gitee-release:
+    name: 【Gitee码云】Sync Release File
+    needs: [check, release]
+    if: needs.check.outputs.should_release == 'true' && needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+      GITEE_OWNER: vincent-zyu
+      GITEE_REPO: koishi-plugin-wydashen-guangyi-query
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get release info from GitHub
+        id: release_info
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ needs.check.outputs.version }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          
+          # 获取 Release 信息
+          RELEASE_INFO=$(gh release view "$TAG" --json name,body,assets)
+          echo "release_name=$(echo "$RELEASE_INFO" | jq -r '.name')" >> "$GITHUB_OUTPUT"
+          echo "$RELEASE_INFO" | jq -r '.body' > release_body.md
+          echo "$RELEASE_INFO" | jq -r '.assets[].url' > asset_urls.txt
+          
+          echo "📦 Release: $TAG"
+          echo "📝 Assets:"
+          cat asset_urls.txt
+
+      - name: Download GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.release_info.outputs.tag }}"
+          mkdir -p assets
+          cd assets
+          gh release download "$TAG" --pattern "*"
+          echo "📥 Downloaded files:"
+          ls -la
+
+      - name: Create or find Gitee Release
+        id: gitee_release
+        run: |
+          TAG="${{ steps.release_info.outputs.tag }}"
+          NAME="${{ steps.release_info.outputs.release_name }}"
+          
+          # JSON 安全转义 release body（处理换行、引号、反斜杠等）
+          JSON_BODY=$(jq -R -s '.' < release_body.md)
+          
+          # 1. 确保 tag 存在于 Gitee
+          if curl -s --fail "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/tags/${TAG}?access_token=${GITEE_TOKEN}" > /dev/null 2>&1; then
+            echo "🏷️ Tag $TAG already exists on Gitee"
+          else
+            echo "🏷️ Creating tag $TAG on Gitee..."
+            curl -s -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/tags" \
+              -d "{\"access_token\":\"${GITEE_TOKEN}\",\"tag_name\":\"${TAG}\",\"refs\":\"main\",\"tag_message\":\"Release ${TAG}\"}"
+          fi
+          
+          # 2. 检查是否已有对应 tag 的 Release
+          EXISTING=$(curl -s "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/tags/${TAG}?access_token=${GITEE_TOKEN}")
+          RELEASE_ID=$(echo "$EXISTING" | jq -r '.id')
+          
+          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+            ASSET_COUNT=$(echo "$EXISTING" | jq '.assets | length')
+            echo "⚠️ Gitee release already exists (ID: $RELEASE_ID, assets: $ASSET_COUNT)"
+          else
+            echo "✅ No existing release, creating..."
+            
+            # 3. 创建 Release
+            RELEASE_PAYLOAD=$(jq -n \
+              --arg token "$GITEE_TOKEN" \
+              --arg tag "$TAG" \
+              --arg name "$NAME" \
+              --argjson body "$JSON_BODY" \
+              '{
+                access_token: $token,
+                tag_name: $tag,
+                name: $name,
+                body: $body,
+                target_commitish: "main",
+                prerelease: false
+              }')
+            
+            CREATE_RESPONSE=$(curl -s -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+              "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+              -d "$RELEASE_PAYLOAD")
+            
+            RELEASE_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id')
+            ASSET_COUNT=0
+            
+            if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+              echo "❌ Failed to create Gitee release"
+              echo "Response: $CREATE_RESPONSE"
+              exit 1
+            fi
+            echo "✅ Created Gitee release (ID: $RELEASE_ID)"
+          fi
+          
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "asset_count=$ASSET_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload assets to Gitee
+        if: steps.gitee_release.outputs.release_id != '' && steps.gitee_release.outputs.release_id != 'null'
+        run: |
+          RELEASE_ID="${{ steps.gitee_release.outputs.release_id }}"
+          
+          # 时间戳函数：同时输出 UTC 和上海时间
+          ts() {
+            echo "[$(date -u '+%H:%M:%S UTC') / $(TZ='Asia/Shanghai' date '+%H:%M:%S CST')]"
+          }
+          
+          echo "$(ts) 📤 Uploading assets to Gitee release (ID: $RELEASE_ID)"
+          
+          SUCCESS=0
+          FAIL=0
+          TOTAL=$(ls -1 assets/ | wc -l)
+          CURRENT=0
+          echo "$(ts) 📁 Total files to upload: $TOTAL"
+          
+          for FILE in assets/*; do
+            if [ -f "$FILE" ]; then
+              CURRENT=$((CURRENT + 1))
+              FILENAME=$(basename "$FILE")
+              FILESIZE=$(stat -c%s "$FILE" 2>/dev/null || stat -f%z "$FILE" 2>/dev/null)
+              FILESIZE_H=$(numfmt --to=iec $FILESIZE 2>/dev/null || echo "${FILESIZE} bytes")
+              echo ""
+              echo "$(ts) ──── [$CURRENT/$TOTAL] $FILENAME ($FILESIZE_H) ────"
+              
+              # 重试 3 次，超时 1200s (20min)，间隔 10s
+              UPLOADED=false
+              for ATTEMPT in 1 2 3; do
+                echo "$(ts)   🔄 Attempt $ATTEMPT/3 — starting curl (max-time=1200s, connect-timeout=30s)"
+                
+                START_TIME=$(date +%s)
+                RESPONSE=$(curl -s --max-time 1200 --connect-timeout 30 \
+                  -w "\n%{http_code}" \
+                  -X POST --header "Content-Type: multipart/form-data" \
+                  -F "access_token=${GITEE_TOKEN}" \
+                  -F "file=@${FILE}" \
+                  "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases/${RELEASE_ID}/attach_files")
+                CURL_EXIT=$?
+                END_TIME=$(date +%s)
+                ELAPSED=$((END_TIME - START_TIME))
+                
+                # 分离 HTTP status code 和 response body
+                HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                echo "$(ts)   📡 curl exit=$CURL_EXIT, HTTP=$HTTP_CODE, took ${ELAPSED}s"
+                
+                if [ $CURL_EXIT -ne 0 ]; then
+                  case $CURL_EXIT in
+                    28) echo "$(ts)   ⏱️ TIMEOUT: curl exceeded max-time (${ELAPSED}s)" ;;
+                    7)  echo "$(ts)   🔌 CONNECTION REFUSED: Gitee server unreachable" ;;
+                    56) echo "$(ts)   💥 RECV ERROR: connection reset during transfer" ;;
+                    *)  echo "$(ts)   ❓ CURL ERROR $CURL_EXIT (see https://curl.se/libcurl/c/libcurl-errors.html)" ;;
+                  esac
+                elif echo "$BODY" | jq -e '.browser_download_url' > /dev/null 2>&1; then
+                  URL=$(echo "$BODY" | jq -r '.browser_download_url')
+                  echo "$(ts)   ✅ SUCCESS: $URL"
+                  SUCCESS=$((SUCCESS + 1))
+                  UPLOADED=true
+                  break
+                else
+                  echo "$(ts)   ⚠️ UNEXPECTED RESPONSE (HTTP $HTTP_CODE):"
+                  echo "$(ts)   $(echo "$BODY" | head -c 300)"
+                fi
+                
+                if [ $ATTEMPT -lt 3 ]; then
+                  echo "$(ts)   💤 Waiting 10s before retry..."
+                  sleep 10
+                fi
+              done
+              
+              if [ "$UPLOADED" = false ]; then
+                echo "$(ts)   ❌ GAVE UP on $FILENAME after 3 attempts"
+                FAIL=$((FAIL + 1))
+              fi
+            fi
+          done
+          
+          echo ""
+          echo "$(ts) ════════════════════════════════════════"
+          echo "$(ts) 📊 Upload summary: $SUCCESS/$TOTAL succeeded, $FAIL failed"
+          echo "$(ts) ════════════════════════════════════════"
