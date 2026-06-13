@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wydashen-guangyi-query",
   "description": "🕊️ 查询光遇国服光翼获取情况 | 支持 Puppeteer/@napi-rs/canvas 双引擎渲染图片 | 合并转发 | 暗黑模式 ",
-  "version": "0.5.0-alpha.2+20260613",
+  "version": "0.5.0-alpha.3+20260613",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

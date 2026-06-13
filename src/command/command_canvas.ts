@@ -5,7 +5,7 @@ import path from 'path'
 import type { WingMapManager } from '../utils'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command('查询光翼-canvas <userId:string>')
+  ctx.command(config.canvasCommandName + ' <userId:string>')
     .alias('aqgc')
     .alias('awa_query_guangyi_canvas')
     .action(async ({ session }, userId) => {

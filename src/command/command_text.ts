@@ -4,7 +4,7 @@ import { generateWingText } from '../gen/gen_text'
 import type { WingMapManager } from '../utils'
 
 export function registerTextCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command('查询光翼-text <userId:string>')
+  ctx.command(config.textCommandName + ' <userId:string>')
     .alias('aqgt')
     .alias('awa_query_guangyi_text')
     .action ( async ( {session}, userId ) => {

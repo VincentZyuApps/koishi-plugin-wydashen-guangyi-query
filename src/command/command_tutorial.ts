@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 export function registerTutorialCommand(ctx: Context, config: Config) {
-  ctx.command('获取id方法')
+  ctx.command(config.tutorialCommandName)
     .alias('atw')
     .alias('awa_tutorial_wing')
     .action(async ({ session }) => {

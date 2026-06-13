@@ -4,7 +4,7 @@ import { generateWingForward } from '../gen/gen_forward'
 import type { WingMapManager } from '../utils'
 
 export function registerForwardCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command('查询光翼-forward <userId:string>')
+  ctx.command(config.forwardCommandName + ' <userId:string>')
     .alias('aqgf')
     .alias('awa_query_guangyi_forward')
     .action(async ( {session}, userId ) => {

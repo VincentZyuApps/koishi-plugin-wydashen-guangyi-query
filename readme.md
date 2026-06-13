@@ -9,9 +9,10 @@
 [![Gitee](https://img.shields.io/badge/Gitee-点我查看_Readme-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
 
 [![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_12467-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12467)
-[![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
+[![awa群-zyu建的qq群](https://img.shields.io/badge/awa群_zyu建的qq群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
+[![光遇Bot群](https://img.shields.io/badge/光遇Bot群-475328908-D63A4D?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/oVxZoksppK)
 
-查询**光遇国服**玩家的**光翼（Winged Light）**获取情况，支持 **Puppeteer** 和 **Go** 双渲染引擎。
+查询**光遇国服**玩家的**光翼（Winged Light）**获取情况，支持 **Puppeteer** 和 **@napi-rs/canvas** 双渲染引擎。
 
 输入玩家角色ID，即可生成一张光翼收集情况的图片，按地图分类展示已收集与未收集的光翼。
 
@@ -22,23 +23,6 @@
 
 > ⚠️ 如果查询光翼的后端挂了，请到群里找 **vincentzyu** 反馈~
 
-<div align="center">
-
-<br/>
-
-**Go 渲染器下载 (支持 Windows / Linux / macOS - x86 / ARM)**
-
-> ⚠️ Linux/macOS 如遇权限问题（如 `spawn ETXTBSY`），可执行：
-> ```bash
-> chmod +x wing-renderer-linux-amd64-v.x.x.x
-> chmod +x wing-renderer-darwin-amd64-v.x.x.x
-> ```
-
-[![GitHub Releases](https://img.shields.io/badge/GitHub-Go_Renderer_Binary-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/releases)
-[![Gitee Releases](https://img.shields.io/badge/Gitee-Go_Renderer_Binary-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query/releases)
-
-</div>
-
 ---
 
 ## ⚡ 双引擎渲染
@@ -46,7 +30,7 @@
 本插件支持两种渲染方式：
 
 - **Puppeteer 渲染** — 默认方式，需要 puppeteer 服务，效果精美
-- **Go 渲染器** — 可选方式，无需 Puppeteer，性能更高，支持深色模式
+- **@napi-rs/canvas 渲染** — 可选方式，无需 Puppeteer，性能更高，支持深色模式
 
 ---
 
@@ -55,7 +39,7 @@
 | 指令 | 说明 |
 | --- | --- |
 | `查询光翼 <角色ID>` | 使用 Puppeteer 渲染图片返回光翼收集情况 |
-| `查询光翼-go <角色ID>` | 使用 Go 渲染器渲染（性能更高 ⚡） |
+| `查询光翼-canvas <角色ID>` / `aqgc` | 使用 @napi-rs/canvas (Skia) 渲染（性能更高 ⚡） |
 | `查询光翼-forward <角色ID>` | 以合并转发消息返回（仅 OneBot 平台） |
 | `获取id方法` | 查看如何获取自己的角色ID |
 | `刷新光翼` | 手动刷新光翼映射数据 |
@@ -64,9 +48,9 @@
 > 返回结果
 ![assets/query_res.png](assets/query_res.png)
 
-### 查询光翼-go \<玩家id\>
-> 返回结果
-![assets/query_go_res.png](assets/query_go_res.png)
+### 查询光翼-canvas \<玩家id\>
+> 返回结果（示例）
+<!-- TODO: 替换为 canvas 渲染效果图 -->
 
 ### 获取id方法
 > 返回结果
@@ -79,4 +63,3 @@
 | 文档 | 说明 |
 |------|------|
 | [📡 API 文档](doc/api.md) | 后端 API 端点说明 |
-| [🔧 构建与发布工作流](.github/workflows/build-go-renderer.md) | CI/CD 流水线说明、关键词触发、Gitee 同步配置 |

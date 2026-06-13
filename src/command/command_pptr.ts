@@ -6,7 +6,7 @@ import type { WingMapManager } from '../utils'
 import path from 'path'
 
 export function registerPptrCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command('查询光翼-image <userId:string>')
+  ctx.command(config.pptrCommandName + ' <userId:string>')
     .alias('查询光翼')
     .alias('aqg')
     .alias('awa_query_guangyi')

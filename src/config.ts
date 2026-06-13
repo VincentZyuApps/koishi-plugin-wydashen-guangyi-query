@@ -18,6 +18,13 @@ export interface Config {
   enableTutorialCommand: boolean;
   enableRefreshCommand: boolean;
 
+  pptrCommandName: string;
+  textCommandName: string;
+  forwardCommandName: string;
+  canvasCommandName: string;
+  tutorialCommandName: string;
+  refreshCommandName: string;
+
   separateByCategory: boolean;
   containerWidth: number;
   viewportWidth: number;
@@ -68,21 +75,39 @@ export const Config: Schema<Config> = Schema.intersect([
     enableImagePptrCommand: Schema.boolean()
       .default(true)
       .description('🖼️ 注册 Puppeteer 渲染图片的指令'),
+    pptrCommandName: Schema.string()
+      .default('查询光翼-image')
+      .description('🖼️ Puppeteer 指令名称'),
     enableTextCommand: Schema.boolean()
       .default(false)
       .description('📝 注册发送文字的指令 <br> <em>📄 (东西太多了 有可能一条发不完，建议用用图片 or 合并转发吧)</em>'),
+    textCommandName: Schema.string()
+      .default('查询光翼-text')
+      .description('📝 文字指令名称'),
     enableForwardCommand: Schema.boolean()
       .default(true)
       .description('📨 注册发送合并转发的指令 <br> <em>📤 (只适用于 onebot 平台)</em>'),
+    forwardCommandName: Schema.string()
+      .default('查询光翼-forward')
+      .description('📨 合并转发指令名称'),
     enableCanvasCommand: Schema.boolean()
       .default(true)
       .description('🎨 注册 Canvas 渲染图片的指令'),
+    canvasCommandName: Schema.string()
+      .default('查询光翼-canvas')
+      .description('🎨 Canvas 指令名称'),
     enableTutorialCommand: Schema.boolean()
       .default(true)
       .description('📚 注册教程指令'),
+    tutorialCommandName: Schema.string()
+      .default('获取id方法')
+      .description('📚 教程指令名称'),
     enableRefreshCommand: Schema.boolean()
       .default(true)
-      .description('🔄 注册手动刷新光翼映射数据的指令')
+      .description('🔄 注册手动刷新光翼映射数据的指令'),
+    refreshCommandName: Schema.string()
+      .default('刷新光翼')
+      .description('🔄 刷新指令名称'),
   }).description('🎮 指令设置'),
 
   Schema.object({
@@ -139,7 +164,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(true)
       .description('🚪 Canvas: 是否显示地图传送门图标'),
     canvasImageType: Schema.union([
-      Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG}`),
+      Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG} ❌ 不支持调整quality`),
       Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整quality`),
     ])
       .role('radio')
