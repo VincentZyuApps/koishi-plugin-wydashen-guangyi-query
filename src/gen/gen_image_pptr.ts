@@ -1,6 +1,7 @@
 import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 import { WingMapItem, processWingData, WingDisplayData, WingData } from '../utils'
+import { categoryOrder } from '../const'
 import fs from 'fs'
 
 /**
@@ -81,12 +82,6 @@ function generateWingHtml(
     groupedByCategory.get(wing.category)!.push(wing)
   })
   
-  // 定义分类的顺序
-  const categoryOrder = [
-    '遇境', '云巢', '晨岛', '云野', '雨林', '霞谷', '暮土', '禁阁', '暴风眼',
-    '普通永久', '复刻永久', '破晓季'
-  ]
-  
   let wingsHtml = ''
   
   if (separateByCategory) {
@@ -102,7 +97,7 @@ function generateWingHtml(
     
     // 再添加未在顺序中定义的分类（以防有新分类）
     for (const [category, categoryWings] of groupedByCategory) {
-      if (!categoryOrder.includes(category)) {
+      if (!(categoryOrder as readonly string[]).includes(category)) {
         sortedCategories.push([category, categoryWings])
       }
     }

@@ -8,6 +8,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-点我查看_Readme-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
 [![Gitee](https://img.shields.io/badge/Gitee-点我查看_Readme-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
 
+[![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_12467-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12467)
+[![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
+
 查询**光遇国服**玩家的**光翼（Winged Light）**获取情况，支持 **Puppeteer** 和 **Go** 双渲染引擎。
 
 输入玩家角色ID，即可生成一张光翼收集情况的图片，按地图分类展示已收集与未收集的光翼。

@@ -206,31 +206,29 @@ function drawCard(ctx: SKRSContext2D, wing: WingDisplayData, t: Theme, dark: boo
   const cx = x + w / 2
   const padding = 8
 
-  // Status badge
+  // 1. Status badge
   const badgeText = `${cfg.emoji} ${cfg.label} ${cfg.symbol}`
-  setFont(ctx, 11, 700)
-  const badgeW = measureText(ctx, badgeText) + 12
-  const badgeH = 18
+  setFont(ctx, 16, 700)
+  const badgeW = measureText(ctx, badgeText) + 18
+  const badgeH = 24
   const badgeX = cx - badgeW / 2
   const badgeY = y + padding
-  fillRoundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6, hexToRgba(style.text, 0.08))
-  drawText(ctx, badgeText, cx, badgeY + 13, style.text, 11, 700, 'center')
+  fillRoundRect(ctx, badgeX, badgeY, badgeW, badgeH, 9, hexToRgba(style.text, 0.08))
+  drawText(ctx, badgeText, cx, badgeY + 18, style.text, 16, 700, 'center')
 
-  // Wing name
-  drawText(ctx, wing.name, cx, y + 40, t.text, 9, 600, 'center')
+  // 2. Wing name (English)
+  drawText(ctx, wing.name, cx, y + 48, t.text, 15, 600, 'center')
 
-  // Spirit / map label
+  // 3. Spirit / map label
   const isSpirit = wing.name.startsWith('s_')
   const spiritName = getSpiritName(wing.name)
   const label = isSpirit ? (spiritName ? `【${spiritName}】` : '【暂时不知道】') : '【地图光翼】'
-  drawText(ctx, label, cx, y + 56, t.textSecondary, 10, 700, 'center', 'alphabetic', true)
+  drawText(ctx, label, cx, y + 70, t.textSecondary, 15, 700, 'center', 'alphabetic', true)
 
-  // Category (big)
+  // 4. Category + subcategory (same line)
   const catColor = dark ? darkCategoryColors[wing.category] || t.textMuted : categoryColors[wing.category] || t.textMuted
-  drawText(ctx, wing.category, cx, y + h - 34, catColor, 18, 900, 'center')
-
-  // Subcategory
-  drawText(ctx, wing.subCategory || '-', cx, y + h - 14, t.textMuted, 10, 600, 'center', 'alphabetic', true)
+  const subText = wing.subCategory ? ` · ${wing.subCategory}` : ''
+  drawText(ctx, `${wing.category}${subText}`, cx, y + h - 16, catColor, 14, 700, 'center')
 }
 
 function drawStatsBar(ctx: SKRSContext2D, t: Theme, x: number, y: number, w: number, stats: { label: string; value: number }[]) {
@@ -333,7 +331,7 @@ export async function renderWingCanvas(
 ): Promise<Buffer> {
   const {
     darkMode = true,
-    width = 1000,
+    width = 910,
     scale = 2,
     separateByCategory = true,
     showPortalIcons = true,

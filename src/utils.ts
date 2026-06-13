@@ -4,6 +4,7 @@ import path from 'path'
 import { parseString } from 'xml2js'
 import { promisify } from 'util'
 import { WingTagMap, ExtraWingTagMap } from './types'
+import { categoryOrder } from './const'
 
 // ============================================================
 // 📄🔍 XML 解析工具
@@ -115,11 +116,6 @@ export function processWingData(wingBuffs: WingData[], wingTagMap: readonly Wing
   return result
 }
 
-export const categoryOrder = [
-  '遇境', '云巢', '晨岛', '云野', '雨林', '霞谷', '暮土', '禁阁', '暴风眼',
-  '普通永久', '复刻永久', '破晓季'
-]
-
 export function groupWingsByCategory(wings: WingDisplayData[]): [string, WingDisplayData[]][] {
   const groupedByCategory = new Map<string, WingDisplayData[]>()
 
@@ -139,7 +135,7 @@ export function groupWingsByCategory(wings: WingDisplayData[]): [string, WingDis
   }
 
   for (const [category, categoryWings] of groupedByCategory) {
-    if (!categoryOrder.includes(category)) {
+    if (!(categoryOrder as readonly string[]).includes(category)) {
       sortedCategories.push([category, categoryWings])
     }
   }

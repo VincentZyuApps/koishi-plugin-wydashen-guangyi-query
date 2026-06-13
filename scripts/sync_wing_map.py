@@ -3,19 +3,73 @@
 同步光翼映射表
 
 从网易官方远程 URL 拉取最新的光翼 ID 映射 JSON，
-更新 src/types.ts 中 WingTagMap 的兜底数据。
+更新 src/const.ts 中 WingTagMap 的兜底数据。
 
 用法:
     python scripts/sync_wing_map.py
 """
 
 import json
-import re
 import urllib.request
 from pathlib import Path
 
 REMOTE_URL = "https://s.166.net/config/ds_yy_02/ma75_wing_wings.json"
-TYPES_FILE = Path(__file__).resolve().parent.parent / "src" / "types.ts"
+CONST_FILE = Path(__file__).resolve().parent.parent / "src" / "const.ts"
+
+# 光翼名字前缀 → emoji
+PREFIX_EMOJI = {
+    "l": "🗺️",
+    "s": "👻",
+}
+
+# 一级标签 → emoji
+CATEGORY_EMOJI = {
+    "暴风眼": "🌪️",
+    "晨岛": "🌅",
+    "禁阁": "🏛️",
+    "暮土": "💀",
+    "霞谷": "🌇",
+    "雨林": "🌧️",
+    "云野": "☁️",
+    "复刻永久": "🔄",
+    "普通永久": "⭐",
+    "破晓季": "🌈",
+    "狂欢船队": "🚢",
+    "遇境": "🏠",
+    "云巢": "🪺",
+}
+
+# 二级标签 → emoji
+SUBCATEGORY_EMOJI = {
+    "": "⬜",
+    "重生门": "🚪",
+    "预言季": "🔮",
+    "魔法季": "🪄",
+    "梦想季": "💭",
+    "集结季": "🏕️",
+    "圣岛季": "🏝️",
+    "小王子季": "👑",
+    "风行季": "🌬️",
+    "潜海季": "🤿",
+    "表演季": "🎭",
+    "追忆季": "📜",
+    "拾光季": "📸",
+    "九色鹿季": "🦌",
+    "姆明季": "🧸",
+    "青鸟季": "🐦",
+    "迁徙季": "🦅",
+    "狂欢季": "🎉",
+    "小黑屋": "🕳️",
+}
+
+
+def get_wing_emojis(name: str, cat: str, sub: str) -> tuple[str, str, str]:
+    prefix = name[0] if name else ""
+    return (
+        PREFIX_EMOJI.get(prefix, "❓"),
+        CATEGORY_EMOJI.get(cat, "❓"),
+        SUBCATEGORY_EMOJI.get(sub, "❓"),
+    )
 
 
 def fetch_remote_wing_map() -> list[dict]:
@@ -35,30 +89,28 @@ def format_ts_json(data: list[dict]) -> str:
     """将数据格式化为压缩的 TypeScript 数组字符串。
 
     每个光翼占 2 行：
-      // no.1
+      // No.1 🗺️ 🌪️ 🚪
       { "光翼名字": "...", "一级标签": "...", "二级标签": "..." },
     """
     lines = ["["]
     for i, item in enumerate(data, start=1):
-        obj = (
-            "{ "
-            f'"光翼名字": "{item["光翼名字"]}", '
-            f'"一级标签": "{item["一级标签"]}", '
-            f'"二级标签": "{item["二级标签"]}" '
-            "},"
-        )
-        lines.append(f"  // no.{i}")
+        name = item["光翼名字"]
+        cat = item["一级标签"]
+        sub = item["二级标签"]
+        prefix_emoji, cat_emoji, sub_emoji = get_wing_emojis(name, cat, sub)
+        obj = f'{{ "光翼名字": "{name}", "一级标签": "{cat}", "二级标签": "{sub}" }},'
+        lines.append(f"  // No.{i} {prefix_emoji} {cat_emoji} {sub_emoji}")
         lines.append(f"  {obj}")
     lines.append("]")
     return "\n".join(lines)
 
 
 def find_wing_tag_map_range(content: str) -> tuple[int, int]:
-    """找到 WingTagMap 数组在文件中的起止位置（起始为 '[' 的位置，结束为 '];' 之后的位置）。"""
+    """找到 WingTagMap 数组在文件中的起止位置（起始为 '[' 的位置，结束为 '];' 或 '] as const;' 之后的位置）。"""
     prefix = "export const WingTagMap = "
     start = content.find(prefix)
     if start == -1:
-        raise RuntimeError(f"未在 {TYPES_FILE} 中找到 WingTagMap 定义")
+        raise RuntimeError(f"未在 {CONST_FILE} 中找到 WingTagMap 定义")
 
     array_start = start + len(prefix)
     if content[array_start] != "[":
@@ -91,31 +143,41 @@ def find_wing_tag_map_range(content: str) -> tuple[int, int]:
         elif ch == "]":
             depth -= 1
             if depth == 0:
-                # 找到结束位置，跳过接下来的 ';\n'
                 end = i + 1
-                while end < len(content) and content[end] in "; \n":
+                # 跳过可选的 "as const" 和尾部 ";"、空白/换行
+                while end < len(content) and content[end].isspace():
                     end += 1
+                if content[end : end + len("as const")] == "as const":
+                    end += len("as const")
+                    while end < len(content) and content[end].isspace():
+                        end += 1
+                if end < len(content) and content[end] == ";":
+                    end += 1
+                    while end < len(content) and content[end] in " \n":
+                        end += 1
                 return array_start, end
         i += 1
 
     raise RuntimeError("WingTagMap 数组未正确闭合")
 
 
-def update_types_file(new_json: str) -> None:
-    """替换 src/types.ts 中的 WingTagMap 定义。"""
-    content = TYPES_FILE.read_text(encoding="utf-8")
+def update_const_file(new_json: str) -> None:
+    """替换 src/const.ts 中的 WingTagMap 定义。"""
+    content = CONST_FILE.read_text(encoding="utf-8")
     array_start, array_end = find_wing_tag_map_range(content)
 
-    new_content = content[:array_start] + new_json + ";\n\n" + content[array_end:]
-    TYPES_FILE.write_text(new_content, encoding="utf-8")
+    new_content = (
+        content[:array_start] + new_json + " as const;\n\n" + content[array_end:]
+    )
+    CONST_FILE.write_text(new_content, encoding="utf-8")
 
-    print(f"✅ 已更新: {TYPES_FILE}")
+    print(f"✅ 已更新: {CONST_FILE}")
 
 
 def main() -> None:
     data = fetch_remote_wing_map()
     new_json = format_ts_json(data)
-    update_types_file(new_json)
+    update_const_file(new_json)
     print(f"\n🎉 同步完成！兜底 WingTagMap 现在包含 {len(data)} 条数据。")
 
 

@@ -1,6 +1,7 @@
 import { Schema } from 'koishi'
 import path from 'path'
 import { IMAGE_TYPES } from './types'
+import { categoryOrder } from './const'
 
 export interface Config {
   backendUrl: string;
@@ -87,8 +88,8 @@ export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
     separateByCategory: Schema.boolean()
       .default(true)
-      .description('🏷️ 在生成的图片中，是否按分类分开渲染不同的光翼<br>\
-        <em>(遇境 → 云巢 → 晨岛 → 云野 → 雨林 → 霞谷 → 暮土 → 禁阁 → 暴风眼 → <br>普通永久 → 复刻永久 → 破晓季)</em>'),
+      .description(`🏷️ 在生成的图片中，是否按分类分开渲染不同的光翼<br>\
+        <em>(${categoryOrder.slice(0, -3).join(' → ')} → <br>${categoryOrder.slice(-3).join(' → ')})</em>`),
     containerWidth: Schema.number()
       .default(999)
       .min(0).max(3000)
@@ -119,7 +120,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(false)
       .description('🌙 Canvas: 是否默认启用黑夜模式渲染'),
     canvasWidth: Schema.number()
-      .default(1000)
+      .default(910)
       .min(400).max(1600)
       .description('📐 Canvas: 图片宽度 (像素)'),
     canvasScale: Schema.number()
