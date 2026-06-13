@@ -1,6 +1,6 @@
 import { Schema } from 'koishi'
 import path from 'path'
-import { IMAGE_TYPES, GO_RENDERER_DOWNLOAD_URLS, getDefaultGoBinaryPath, getCurrentArchDescription } from './types'
+import { IMAGE_TYPES } from './types'
 
 export interface Config {
   backendUrl: string;
@@ -10,9 +10,12 @@ export interface Config {
   tutorialImagePath: string;
   skyAppXmlFilePath: string;
 
-  enableImageCommand: boolean;
+  enableImagePptrCommand: boolean;
   enableTextCommand: boolean;
   enableForwardCommand: boolean;
+  enableCanvasCommand: boolean;
+  enableTutorialCommand: boolean;
+  enableRefreshCommand: boolean;
 
   separateByCategory: boolean;
   containerWidth: number;
@@ -21,14 +24,14 @@ export interface Config {
   screenshotQuality: number;
   puppeteerShowPortalIcons: boolean;
 
-  enableGoBackend: boolean;
-  goRendererBinaryPath: string;
-  goRendererDownloadUrls: { source: string; url: string }[];
-  goDownloadFontFromGitee: boolean;
-  goUseCustomFont: boolean;
-  goCustomFontPath: string;
-  goDefaultDarkMode: boolean;
-  goShowPortalIcons: boolean;
+  canvasDarkMode: boolean;
+  canvasWidth: number;
+  canvasScale: number;
+  canvasFontPath: string;
+  canvasEmojiFontPath: string;
+  canvasShowPortalIcons: boolean;
+  canvasImageType: string;
+  canvasQuality: number;
 
   verboseConsoleLog: boolean;
 }
@@ -61,16 +64,24 @@ export const Config: Schema<Config> = Schema.intersect([
   }).description('📁 路径设置'),
 
   Schema.object({
-    enableImageCommand: Schema.boolean()
+    enableImagePptrCommand: Schema.boolean()
       .default(true)
-      .description('🖼️ 注册渲染图片的指令'),
+      .description('🖼️ 注册 Puppeteer 渲染图片的指令'),
     enableTextCommand: Schema.boolean()
       .default(false)
-      .disabled()
-      .description('📝 注册发送文字的指令 <em>(东西太多了 onebot 一条发不完，先用合并转发吧)</em>'),
+      .description('📝 注册发送文字的指令 <br> <em>📄 (东西太多了 有可能一条发不完，建议用用图片 or 合并转发吧)</em>'),
     enableForwardCommand: Schema.boolean()
       .default(true)
-      .description('📨 注册发送合并转发的指令 <em>(只适用于 onebot 平台)</em>')
+      .description('📨 注册发送合并转发的指令 <br> <em>📤 (只适用于 onebot 平台)</em>'),
+    enableCanvasCommand: Schema.boolean()
+      .default(true)
+      .description('🎨 注册 Canvas 渲染图片的指令'),
+    enableTutorialCommand: Schema.boolean()
+      .default(true)
+      .description('📚 注册教程指令'),
+    enableRefreshCommand: Schema.boolean()
+      .default(true)
+      .description('🔄 注册手动刷新光翼映射数据的指令')
   }).description('🎮 指令设置'),
 
   Schema.object({
@@ -104,39 +115,40 @@ export const Config: Schema<Config> = Schema.intersect([
   }).description('🎨 Puppeteer图片渲染设置'),
 
   Schema.object({
-    enableGoBackend: Schema.boolean()
+    canvasDarkMode: Schema.boolean()
       .default(false)
-      .description('🐹 是否启用 Go 渲染器。<br><em>启用后，插件将使用 Go 实现的本地渲染器，无需 Puppeteer，性能更高 ⚡</em>'),
-    goRendererBinaryPath: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .default(getDefaultGoBinaryPath())
-      .description('📂 Go 渲染器二进制文件路径。<br><em>适合场景: 1. 开发者快速调试 2. Geek 用户自己编译二进制</em>'),
-    goRendererDownloadUrls: Schema.array(
-      Schema.object({
-        source: Schema.string().description('来源名称'),
-        url: Schema.string().description('下载地址'),
-      })
-    ).role('table')
-      .default([...GO_RENDERER_DOWNLOAD_URLS])
-      .description(`📥 Go 渲染器二进制文件下载地址表<br>\
-        <strong style="color: #10b981;">🖥️ 检测到当前设备架构: <code>${getCurrentArchDescription()}</code></strong>`),
-    goDownloadFontFromGitee: Schema.boolean()
-      .default(false)
-      .description('📥 Go: 是否从 Gitee 下载字体文件。<br><em>启用后，插件启动时会自动下载字体到下方路径</em>'),
-    goUseCustomFont: Schema.boolean()
-      .default(false)
-      .description('🔤 Go: 是否使用自定义字体 (LXGW文楷)。'),
-    goCustomFontPath: Schema.string()
+      .description('🌙 Canvas: 是否默认启用黑夜模式渲染'),
+    canvasWidth: Schema.number()
+      .default(1000)
+      .min(400).max(1600)
+      .description('📐 Canvas: 图片宽度 (像素)'),
+    canvasScale: Schema.number()
+      .default(2)
+      .min(0.5).max(10).step(0.1)
+      .description('🔍 Canvas: 内部渲染缩放倍率（值越大越清晰，但耗时和图片体积也会增加）'),
+    canvasFontPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
       .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
-      .description('📂 Go: 自定义字体文件路径。'),
-    goDefaultDarkMode: Schema.boolean()
+      .description('🔤 Canvas: 中文字体文件路径 (绝对路径)'),
+    canvasEmojiFontPath: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .default('C:\\Windows\\Fonts\\seguiemj.ttf')
+      .description('🔤 Canvas: Emoji 字体文件路径 (Windows 默认 Segoe UI Emoji，若不存在会自动忽略)'),
+    canvasShowPortalIcons: Schema.boolean()
       .default(true)
-      .description('🌙 Go: 是否默认启用黑夜模式渲染'),
-    goShowPortalIcons: Schema.boolean()
-      .default(true)
-      .description('🚪 Go: 是否显示地图传送门图标'),
-  }).description('🐹 Go 渲染器设置'),
+      .description('🚪 Canvas: 是否显示地图传送门图标'),
+    canvasImageType: Schema.union([
+      Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG}`),
+      Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整quality`),
+    ])
+      .role('radio')
+      .default(IMAGE_TYPES.PNG)
+      .description("📤 Canvas: 渲染图片的输出类型。"),
+    canvasQuality: Schema.number()
+      .min(0).max(100).step(1)
+      .default(90)
+      .description('📏 Canvas: JPEG 质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
+  }).description('🎨 @napi-rs/canvas 图片渲染设置'),
 
   Schema.object({
     verboseConsoleLog: Schema.boolean()

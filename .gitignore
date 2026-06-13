@@ -17,11 +17,9 @@ tsconfig.tsbuildinfo
 *.njsproj
 *.sln
 
-# Go build output
+# Build output / test output
 bin/
+output/
 
-# Temp files
-tmp/
-
-# Downloaded fonts (auto-downloaded at runtime)
-assets/LXGWWenKaiMono-Regular.ttf
+# Runtime generated cache
+assets/wingTagMap.json

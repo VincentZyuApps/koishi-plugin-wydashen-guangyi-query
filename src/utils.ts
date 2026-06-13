@@ -1,66 +1,279 @@
 import { Context } from 'koishi'
-import { existsSync, writeFileSync, mkdirSync } from 'fs'
-import { join, dirname, basename } from 'path'
+import fs from 'fs/promises'
+import path from 'path'
+import { parseString } from 'xml2js'
+import { promisify } from 'util'
+import { WingTagMap, ExtraWingTagMap } from './types'
 
-// 字体文件配置
-export const FONT_CONFIG = {
-  filename: 'LXGWWenKaiMono-Regular.ttf',
-  downloadUrl: 'https://gitee.com/vincent-zyu/koishi-plugin-onebot-info-image/releases/download/font/LXGWWenKaiMono-Regular.ttf'
+// ============================================================
+// 📄🔍 XML 解析工具
+// ============================================================
+
+export const parseXmlStringAsync = promisify(parseString)
+
+export async function parseXmlFile(filePath: string): Promise<any> {
+  const xmlContent = await fs.readFile(filePath, 'utf-8')
+  return parseXmlStringAsync(xmlContent)
 }
 
-/**
- * 获取默认字体文件路径
- */
-export function getFontPath(): string {
-  return join(__dirname, '..', 'assets', FONT_CONFIG.filename)
-}
+export function extractSpiritNames(xmlData: any): Map<string, string> {
+  const spiritNameMap = new Map<string, string>()
 
-/**
- * 检查字体文件是否存在
- * @param fontPath 可选的自定义字体路径
- */
-export function fontExists(fontPath?: string): boolean {
-  return existsSync(fontPath || getFontPath())
-}
-
-/**
- * 验证并下载字体文件
- * @param ctx Koishi Context 实例
- * @param targetPath 目标字体文件保存路径
- * @returns Promise<boolean> 是否成功
- */
-export async function validateAndDownloadFont(ctx: Context, targetPath?: string): Promise<boolean> {
-  const fontPath = targetPath || getFontPath()
-  const fontDir = dirname(fontPath)
-  const fontFilename = basename(fontPath)
-  
-  // 确保目标目录存在
-  if (!existsSync(fontDir)) {
-    mkdirSync(fontDir, { recursive: true })
+  if (!xmlData?.resources?.string) {
+    return spiritNameMap
   }
-  
-  // 检查字体文件是否存在
-  if (existsSync(fontPath)) {
-    ctx.logger.info(`[Font] ✅ 字体文件 ${fontFilename} 已存在: ${fontPath}`)
-    return true
+
+  xmlData.resources.string.forEach((entry: any) => {
+    if (entry?.$?.name?.startsWith('name_')) {
+      const englishName = entry.$.name.replace('name_', '')
+      const chineseName = entry._
+      if (englishName && chineseName) {
+        const baseEnglishName = englishName.replace(/_\d+$/, '')
+        spiritNameMap.set(baseEnglishName, chineseName)
+      }
+    }
+  })
+
+  return spiritNameMap
+}
+
+// ============================================================
+// ✨🕊️ 光翼数据处理
+// ============================================================
+
+export interface WingData {
+  name: string
+  collected: boolean
+  deposited: boolean
+  last_conversion: number
+  deposit_id: string
+}
+
+export interface WingDisplayData extends WingData {
+  displayName: string
+  category: string
+  subCategory: string
+  index: number
+  isFromAPI: boolean
+}
+
+export type WingMapItem = {
+  "光翼名字": string;
+  "一级标签": string;
+  "二级标签": string;
+}
+
+export function getWingDisplayInfo(wingName: string, wingTagMap: readonly WingMapItem[]): { displayName: string; category: string; subCategory: string; index: number } {
+  const found = wingTagMap.findIndex(item => item.光翼名字 === wingName)
+  if (found !== -1) {
+    const item = wingTagMap[found]
+    return {
+      displayName: item.光翼名字,
+      category: item.一级标签,
+      subCategory: item.二级标签 || '',
+      index: found
+    }
   }
-  
-  ctx.logger.info(`[Font] 字体文件 ${fontFilename} 不存在，开始下载到: ${fontPath}`)
-  
-  try {
-    // 下载字体文件
-    const response = await ctx.http.get(FONT_CONFIG.downloadUrl, { 
-      responseType: 'arraybuffer',
-      timeout: 60000 // 60秒超时，字体文件可能较大
-    })
-    const fontBuffer = Buffer.from(response)
-    
-    // 保存字体文件
-    writeFileSync(fontPath, fontBuffer)
-    ctx.logger.info(`[Font] 字体文件 ${fontFilename} 下载完成 (${(fontBuffer.length / 1024 / 1024).toFixed(2)} MB)`)
-    return true
-  } catch (error) {
-    ctx.logger.error(`[Font] 下载字体文件 ${fontFilename} 失败: ${error instanceof Error ? error.message : String(error)}`)
-    return false
+  return {
+    displayName: wingName,
+    category: '未知',
+    subCategory: '',
+    index: 9999
+  }
+}
+
+export function processWingData(wingBuffs: WingData[], wingTagMap: readonly WingMapItem[]): WingDisplayData[] {
+  const wingMap = new Map(wingBuffs.map(w => [w.name, w]))
+  const result: WingDisplayData[] = []
+
+  wingTagMap.forEach((mapItem, index) => {
+    const wingName = mapItem.光翼名字
+    const wingData = wingMap.get(wingName)
+    const displayInfo = getWingDisplayInfo(wingName, wingTagMap)
+
+    if (wingData) {
+      result.push({
+        ...wingData,
+        ...displayInfo,
+        index,
+        isFromAPI: true
+      })
+    } else {
+      result.push({
+        name: wingName,
+        collected: false,
+        deposited: false,
+        last_conversion: 0,
+        deposit_id: '',
+        ...displayInfo,
+        index,
+        isFromAPI: false
+      })
+    }
+  })
+
+  return result
+}
+
+export const categoryOrder = [
+  '遇境', '云巢', '晨岛', '云野', '雨林', '霞谷', '暮土', '禁阁', '暴风眼',
+  '普通永久', '复刻永久', '破晓季'
+]
+
+export function groupWingsByCategory(wings: WingDisplayData[]): [string, WingDisplayData[]][] {
+  const groupedByCategory = new Map<string, WingDisplayData[]>()
+
+  wings.forEach(wing => {
+    if (!groupedByCategory.has(wing.category)) {
+      groupedByCategory.set(wing.category, [])
+    }
+    groupedByCategory.get(wing.category)!.push(wing)
+  })
+
+  const sortedCategories: [string, WingDisplayData[]][] = []
+
+  for (const category of categoryOrder) {
+    if (groupedByCategory.has(category)) {
+      sortedCategories.push([category, groupedByCategory.get(category)!])
+    }
+  }
+
+  for (const [category, categoryWings] of groupedByCategory) {
+    if (!categoryOrder.includes(category)) {
+      sortedCategories.push([category, categoryWings])
+    }
+  }
+
+  return sortedCategories
+}
+
+export function calcWingStats(wings: WingDisplayData[]) {
+  const total = wings.length
+  const collected = wings.filter(w => w.collected).length
+  const deposited = wings.filter(w => w.isFromAPI && w.name.startsWith('s_') && !w.collected).length
+  const notRedeemed = wings.filter(w => !w.isFromAPI && w.name.startsWith('s_')).length
+  return { total, collected, deposited, notRedeemed }
+}
+
+// ============================================================
+// 光翼映射管理器
+// ============================================================
+
+const WING_MAP_FILE = path.resolve(__dirname, '../assets/wingTagMap.json')
+
+export class WingMapManager {
+  private wingMap: WingMapItem[] = [];
+  private readonly wingMapPath: string;
+  private fallbackMap: readonly WingMapItem[];
+  private spiritNameMap: Map<string, string> = new Map();
+  private readonly xmlPath: string;
+
+  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string) {
+    this.wingMapPath = WING_MAP_FILE;
+    this.fallbackMap = [...WingTagMap, ...ExtraWingTagMap];
+    this.xmlPath = skyAppXmlPath;
+  }
+
+  async initialize(): Promise<void> {
+    this.ctx.logger.info('🚀 初始化光翼映射管理器 Initializing WingMapManager...');
+
+    try {
+      this.ctx.logger.info('📖 正在加载Sky App XML文件...');
+      const xmlData = await parseXmlFile(this.xmlPath);
+      this.spiritNameMap = extractSpiritNames(xmlData);
+      this.ctx.logger.info(`✅ 成功加载 ${this.spiritNameMap.size} 个先祖名称映射`);
+    } catch (error) {
+      this.ctx.logger.error('❌ 加载Sky App XML文件失败:', error);
+    }
+
+    try {
+      await fs.access(this.wingMapPath);
+      this.ctx.logger.info('📂 发现本地光翼映射文件 Local wing map file found, loading...');
+      await this.loadWingMap();
+
+      this.ctx.logger.info('🔄 检查远程更新 Checking for remote updates...');
+      const refreshResult = await this.refreshWingMap();
+
+      if (refreshResult.startsWith('❌') && this.wingMap.length > 0) {
+        this.ctx.logger.warn('⚠️ 远程更新失败，继续使用本地缓存 Remote update failed, using local cache');
+      }
+    } catch (error) {
+      this.ctx.logger.info('🌐 本地光翼映射文件不存在 Local file not found, fetching from remote...');
+      await this.refreshWingMap();
+
+      if (this.wingMap.length === 0) {
+        this.ctx.logger.warn('🔄 远程获取失败，使用内置映射表 Remote fetch failed, using fallback wing map');
+        this.wingMap = [...this.fallbackMap];
+      }
+    }
+
+    this.ctx.logger.info(`✅ 光翼映射管理器初始化完成 WingMapManager initialized! Total wings loaded: ${this.wingMap.length}`);
+  }
+
+  private async loadWingMap(): Promise<void> {
+    try {
+      const data = await fs.readFile(this.wingMapPath, 'utf-8');
+      const localMap = JSON.parse(data);
+      if (Array.isArray(localMap) && localMap.length > 0) {
+        this.wingMap = [...localMap, ...ExtraWingTagMap];
+        this.ctx.logger.info(`📖 从本地文件加载成功 Loaded from local: ${localMap.length} wings, total with extra: ${this.wingMap.length}`);
+        return;
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        this.ctx.logger.error('❌ 读取或解析本地光翼映射文件失败 Failed to read or parse local wing map file', error);
+      } else {
+        this.ctx.logger.warn('📭 本地光翼映射文件未找到 Local wing map file not found');
+      }
+    }
+
+    this.ctx.logger.warn('🔄 使用内置映射表 Using fallback wing map');
+    this.wingMap = [...this.fallbackMap];
+  }
+
+  async refreshWingMap(): Promise<string> {
+    this.ctx.logger.info(`🌐 正在从远程获取最新光翼映射表 Fetching from: ${this.wyWingMapUrl}`);
+    try {
+      const response = await this.ctx.http.get<WingMapItem[]>(this.wyWingMapUrl);
+      if (!response || !Array.isArray(response)) {
+        throw new Error('Invalid data format from remote URL.');
+      }
+
+      await fs.writeFile(this.wingMapPath, JSON.stringify(response, null, 2));
+      this.wingMap = [...response, ...ExtraWingTagMap];
+      this.ctx.logger.info(`✨ 光翼映射表刷新成功 Wing map refreshed! Remote: ${response.length}, total with extra: ${this.wingMap.length}`);
+      return '✅ 光翼ID映射表刷新成功！Wing map refreshed successfully!';
+    } catch (error) {
+      this.ctx.logger.error('❌ 刷新光翼映射表失败 Failed to refresh wing map:', error);
+      if (this.wingMap.length === 0) {
+        this.ctx.logger.warn('🔄 刷新失败，回退到内置映射表 Refresh failed, falling back to default map');
+        this.wingMap = [...this.fallbackMap];
+      }
+      return `❌ 刷新失败 Refresh failed: ${error.message}`;
+    }
+  }
+
+  getWingMap(): readonly WingMapItem[] {
+    return this.wingMap;
+  }
+
+  private extractBaseSpiritName(wingName: string): string | undefined {
+    if (!wingName.startsWith('s_')) {
+      return undefined;
+    }
+
+    let baseName = wingName.substring(2);
+    baseName = baseName.replace(/_\d+$/, '');
+
+    return baseName;
+  }
+
+  getSpiritName(wingName: string): string | undefined {
+    const baseName = this.extractBaseSpiritName(wingName);
+    if (!baseName) {
+      return undefined;
+    }
+
+    return this.spiritNameMap.get(baseName);
   }
 }
