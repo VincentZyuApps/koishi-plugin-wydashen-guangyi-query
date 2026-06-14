@@ -15,10 +15,10 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
       }
 
       const startTime = Date.now()
-      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}🎨 正在查询 (Canvas 渲染器)，请稍候...`)
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}🎨 正在查询并渲染Canvas图片，请稍候...`)
 
       try {
-        const backendUrl = config.backendUrl || 'http://sh-aliyun2.vincentzyu233.cn:51024'
+        const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
         const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
 
         ctx.logger.debug(`[Canvas] Querying wing data from: ${apiUrl}`)
@@ -76,7 +76,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
             separateByCategory: config.separateByCategory,
             showPortalIcons: config.canvasShowPortalIcons,
             portalIconsPath: portalIconsPathStr,
-            fontPath: config.canvasFontPath,
+            fontPath: config.canvasUseCustomFont ? config.canvasFontPath : '',
             emojiFontPath: config.canvasEmojiFontPath,
             imageType: config.canvasImageType as 'png' | 'jpeg',
             quality: config.canvasQuality,

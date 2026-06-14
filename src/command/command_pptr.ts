@@ -17,10 +17,10 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
       }
 
       const startTime = Date.now()
-      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询，请稍候...`);
+      const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}🎨正在查询并渲染Puppeteer图片，请稍候...`);
 
       try {
-        const backendUrl = config.backendUrl || 'http://sh-aliyun2.vincentzyu233.cn:51024'
+        const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
         const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
 
         ctx.logger.debug(`Querying wing data from: ${apiUrl}`)
@@ -72,7 +72,7 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
           config.separateByCategory, config.containerWidth, config.viewportWidth,
           config.imageType, config.screenshotQuality,
           config.puppeteerShowPortalIcons, portalIconsPathStr,
-          config.puppeteerFontPath
+          config.puppeteerUseCustomFont ? config.puppeteerFontPath : ''
         )
 
         const elapsed = Date.now() - startTime

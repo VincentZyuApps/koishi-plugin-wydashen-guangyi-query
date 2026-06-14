@@ -285,8 +285,8 @@ function generateWingHtml(
     .wings-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 6px 6px;
-      padding: 10px 0;
+      gap: 4px 4px;
+      padding: 6px 0;
     }
     
     .category-header {
@@ -295,8 +295,8 @@ function generateWingHtml(
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border-radius: 10px;
-      padding: 12px 20px;
-      margin: 10px 0 5px 0;
+      padding: 5px 20px;
+      margin: -1px 0 -1px 0;
       border: 2px solid rgba(102, 126, 234, 0.4);
       box-shadow: 0 2px 10px rgba(102, 126, 234, 0.15);
       display: flex;
@@ -344,7 +344,7 @@ function generateWingHtml(
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       border-radius: 8px;
-      padding: 10px 8px;
+      padding: 6px 5px;
       text-align: center;
       border: 2px solid rgba(102, 126, 234, 0.2);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -352,8 +352,8 @@ function generateWingHtml(
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 4px;
-      min-height: 120px;
+      gap: 3px;
+      min-height: 105px;
       line-height: 1.2;
       width: 100%;
       overflow: hidden;
@@ -443,7 +443,7 @@ function generateWingHtml(
       font-size: 14px;
       font-weight: 600;
       color: #1a2332;
-      margin-bottom: 4px;
+      margin-bottom: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -465,7 +465,7 @@ function generateWingHtml(
     }
 
     .map-wl-or-spirit-name {
-      font-size: 19px;
+      font-size: 21px;
       color: #5a3a7d;
       font-weight: 700;
       font-style: italic;
@@ -478,7 +478,7 @@ function generateWingHtml(
     }
 
     .unknown-name {
-      font-size: 19px;
+      font-size: 21px;
       color: #000000;
       font-weight: 700;
       font-style: italic;

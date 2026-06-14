@@ -53,6 +53,11 @@ const themes = {
 
 type Theme = typeof themes.light
 
+const CARDS_PER_ROW = 5
+const GAP_X = 8
+const GAP_Y = 8
+const CARD_H = 90
+
 const portalIconMap: Record<string, string> = {
   '晨岛': 'chendao.png',
   '云野': 'yunye.png',
@@ -176,7 +181,7 @@ function drawCard(ctx: SKRSContext2D, wing: WingDisplayData, t: Theme, dark: boo
   const cx = x + w / 2
   const padding = 5
 
-  // 1. Status badge
+  // line1: Status badge
   const badgeText = `${cfg.emoji} ${cfg.label} ${cfg.symbol}`
   setFont(ctx, 16, 700)
   const badgeW = measureText(ctx, badgeText) + 18
@@ -186,18 +191,18 @@ function drawCard(ctx: SKRSContext2D, wing: WingDisplayData, t: Theme, dark: boo
   fillRoundRect(ctx, badgeX, badgeY, badgeW, badgeH, 9, hexToRgba(style.text, 0.08))
   drawText(ctx, badgeText, cx, badgeY + 18, style.text, 16, 700, 'center')
 
-  // 2. Wing name (English)
+  // line2: Wing name (English)
   drawText(ctx, wing.name, cx, y + 43, t.text, 15, 600, 'center')
 
-  // 3. Spirit / map label
+  // line3: Spirit / map label
   const isSpirit = wing.name.startsWith('s_')
   const spiritName = getSpiritName(wing.name)
   const label = isSpirit ? (spiritName ? `【👻${spiritName}】` : '【❓暂时不知道】') : '【🗺️地图光翼】'
-  drawText(ctx, label, cx, y + 63, t.textSecondary, 15, 700, 'center', 'alphabetic', true)
+  drawText(ctx, label, cx, y + 64, t.textSecondary, 16, 700, 'center', 'alphabetic', true)
 
-  // 4. Category + subcategory (same line, different sizes: ratio ~1:0.618)
+  // line4: Category + subcategory (same line, different sizes: ratio ~1:0.618)
   const catColor = t.title
-  const tagY = y + h - 12
+  const tagY = y + h - 6.7
   setFont(ctx, 16, 700)
   const catW = ctx.measureText(wing.category).width
   const subLabel = wing.subCategory ? ` · ${wing.subCategory}` : ''
@@ -264,21 +269,17 @@ function drawCategoryHeader(ctx: SKRSContext2D, t: Theme, dark: boolean, x: numb
 }
 
 function drawCardGrid(ctx: SKRSContext2D, wings: WingDisplayData[], t: Theme, dark: boolean, x: number, y: number, w: number, getSpiritName: (name: string) => string | undefined) {
-  const cardsPerRow = 5
-  const gapX = 8
-  const gapY = 8
-  const cardW = (w - (cardsPerRow - 1) * gapX) / cardsPerRow
-  const cardH = 98
+  const cardW = (w - (CARDS_PER_ROW - 1) * GAP_X) / CARDS_PER_ROW
 
   wings.forEach((wing, i) => {
-    const row = Math.floor(i / cardsPerRow)
-    const col = i % cardsPerRow
-    const cx = x + col * (cardW + gapX)
-    const cy = y + row * (cardH + gapY)
-    drawCard(ctx, wing, t, dark, cx, cy, cardW, cardH, getSpiritName)
+    const row = Math.floor(i / CARDS_PER_ROW)
+    const col = i % CARDS_PER_ROW
+    const cx = x + col * (cardW + GAP_X)
+    const cy = y + row * (CARD_H + GAP_Y)
+    drawCard(ctx, wing, t, dark, cx, cy, cardW, CARD_H, getSpiritName)
   })
 
-  return Math.ceil(wings.length / cardsPerRow) * (cardH + gapY) - gapY
+  return Math.ceil(wings.length / CARDS_PER_ROW) * (CARD_H + GAP_Y) - GAP_Y
 }
 
 async function drawSection(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, wings: WingDisplayData[], showPortalIcons: boolean, portalIconsPath: string, getSpiritName: (name: string) => string | undefined): Promise<number> {
@@ -316,8 +317,8 @@ export async function renderWingCanvas(
     separateByCategory = true,
     showPortalIcons = true,
     portalIconsPath = resolve(__dirname, '../../assets/portal'),
-    fontPath = resolve(__dirname, '../../assets/LXGWWenKaiMono-Regular.ttf'),
-    emojiFontPath = 'C:\\Windows\\Fonts\\seguiemj.ttf',
+    fontPath = '',
+    emojiFontPath = '',
     imageType = 'png',
     quality = 90,
   } = options
@@ -339,13 +340,13 @@ export async function renderWingCanvas(
   if (separateByCategory) {
     const grouped = groupWingsByCategory(processedWings)
     for (const [category, wings] of grouped) {
-      const sectionH = 42 + 10 + (Math.ceil(wings.length / 5) * (120 + 8) - 8)
+      const sectionH = 42 + 10 + (Math.ceil(wings.length / CARDS_PER_ROW) * (CARD_H + GAP_Y) - GAP_Y)
       categorySections.push({ category, wings })
       contentH += sectionH + 16
     }
     contentH -= 16
   } else {
-    const gridH = Math.ceil(processedWings.length / 5) * (120 + 8) - 8
+    const gridH = Math.ceil(processedWings.length / CARDS_PER_ROW) * (CARD_H + GAP_Y) - GAP_Y
     categorySections.push({ category: '', wings: processedWings })
     contentH += gridH
   }

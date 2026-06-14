@@ -44,7 +44,7 @@ GET /queryGuangyi?id=角色ID
 
 **请求示例：**
 ```bash
-curl "http://sh-aliyun2.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
+curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
 ```
 
 **返回示例：**
@@ -81,11 +81,11 @@ python test_client.py
 import requests
 
 # 健康检查
-response = requests.get("http://sh-aliyun2.vincentzyu233.cn:51024/checkhealth")
+response = requests.get("http://bluerosion.vincentzyu233.cn:51024/checkhealth")
 print(response.json())
 
 # 查询光翼数据
-response = requests.get("http://sh-aliyun2.vincentzyu233.cn:51024/queryGuangyi", params={"id": "137106295"})
+response = requests.get("http://bluerosion.vincentzyu233.cn:51024/queryGuangyi", params={"id": "137106295"})
 print(response.json())
 ```
 
@@ -93,12 +93,12 @@ print(response.json())
 
 ```javascript
 // 健康检查
-fetch('http://sh-aliyun2.vincentzyu233.cn:51024/checkhealth')
+fetch('http://bluerosion.vincentzyu233.cn:51024/checkhealth')
   .then(res => res.json())
   .then(data => console.log(data));
 
 // 查询光翼数据
-fetch('http://sh-aliyun2.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
+fetch('http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
   .then(res => res.json())
   .then(data => console.log(data));
 ```
@@ -107,8 +107,8 @@ fetch('http://sh-aliyun2.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
 
 ```bash
 # 健康检查
-curl http://sh-aliyun2.vincentzyu233.cn:51024/checkhealth
+curl http://bluerosion.vincentzyu233.cn:51024/checkhealth
 
 # 查询光翼数据
-curl "http://sh-aliyun2.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
+curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
 ```

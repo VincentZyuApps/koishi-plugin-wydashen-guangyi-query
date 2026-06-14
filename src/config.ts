@@ -31,6 +31,7 @@ export interface Config {
   imageType: string;
   screenshotQuality: number;
   puppeteerFontPath: string;
+  puppeteerUseCustomFont: boolean;
   puppeteerShowPortalIcons: boolean;
   puppeteerShowRenderInfo: boolean;
 
@@ -38,6 +39,7 @@ export interface Config {
   canvasWidth: number;
   canvasScale: number;
   canvasFontPath: string;
+  canvasUseCustomFont: boolean;
   canvasEmojiFontPath: string;
   canvasShowPortalIcons: boolean;
   canvasImageType: string;
@@ -52,7 +54,7 @@ export const Config: Schema<Config> = Schema.intersect([
     backendUrl: Schema.string()
       .role('textarea', { rows: [2, 4] })
       .description('🌐 后端服务器地址')
-      .default('http://sh-aliyun2.vincentzyu233.cn:51024'),
+      .default('http://bluerosion.vincentzyu233.cn:51024'),
     wyWingMapUrl: Schema.string()
       .role('textarea', { rows: [2, 4] })
       .description('🗺️ 光翼 ID 映射 JSON 地址')
@@ -140,8 +142,11 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('📏 Puppeteer 截图质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
     puppeteerFontPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
-      .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
+      .default(path.resolve(__dirname, '../assets/fonts/LXGWWenKaiMono-Regular.ttf'))
       .description('🔤 Puppeteer: 中文字体文件路径 (绝对路径)'),
+    puppeteerUseCustomFont: Schema.boolean()
+      .default(true)
+      .description('🔤 Puppeteer: 是否使用自定义字体，关闭则使用系统默认字体'),
     puppeteerShowPortalIcons: Schema.boolean()
       .default(true)
       .description('🚪 Puppeteer: 是否显示地图传送门图标'),
@@ -164,15 +169,19 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('🔍 Canvas: 内部渲染缩放倍率（值越大越清晰，但耗时和图片体积也会增加）'),
     canvasFontPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
-      .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
+      .default(path.resolve(__dirname, '../assets/fonts/LXGWWenKaiMono-Regular.ttf'))
       .description('🔤 Canvas: 中文字体文件路径 (绝对路径)'),
+    canvasUseCustomFont: Schema.boolean()
+      .default(true)
+      .description('🔤 Canvas: 是否使用自定义字体，关闭则使用系统默认字体'),
     canvasEmojiFontPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
-      .default('C:\\Windows\\Fonts\\seguiemj.ttf')
-      .description('🔤 Canvas: Emoji 字体文件路径 (Windows 默认 Segoe UI Emoji，若不存在会自动忽略)'),
+      .default('')
+      .description('🔤 Canvas: Emoji 字体文件路径'),
     canvasShowPortalIcons: Schema.boolean()
+      .experimental()
       .default(true)
-      .description('🚪 Canvas: 是否显示地图传送门图标'),
+      .description('🚪 Canvas: 是否显示地图传送门图标 <br> <i>🚧还未生效，调试中</i>'),
     canvasImageType: Schema.union([
       Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG} ❌ 不支持调整quality`),
       Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整quality`),
