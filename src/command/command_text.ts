@@ -52,7 +52,7 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
 
         const textResult = generateWingText(userId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
 
-        await session.send(`${h.quote(session.messageId)}${textResult.slice(0,1000)}`);
+        await session.send(`${h.quote(session.messageId)}${textResult.slice(0, config.textMaxLength)}`);
         return;
       } catch (error) {
         ctx.logger.error(`Error querying wings: ${error}`)

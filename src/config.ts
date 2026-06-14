@@ -20,6 +20,7 @@ export interface Config {
 
   pptrCommandName: string;
   textCommandName: string;
+  textMaxLength: number;
   forwardCommandName: string;
   canvasCommandName: string;
   tutorialCommandName: string;
@@ -154,6 +155,13 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(true)
       .description('📊 Puppeteer: 在图片消息后显示渲染耗时统计'),
   }).description('🎨 Puppeteer图片渲染设置'),
+
+  Schema.object({
+    textMaxLength: Schema.number()
+      .default(1000)
+      .min(100).max(10000).step(100)
+      .description('📝 文字指令返回结果的最大字符数'),
+  }).description('📝 文字输出设置'),
 
   Schema.object({
     canvasDarkMode: Schema.boolean()

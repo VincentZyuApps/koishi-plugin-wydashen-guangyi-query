@@ -10,6 +10,8 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
     .alias('查询光翼')
     .alias('aqg')
     .alias('awa_query_guangyi')
+    .alias('aqgp')
+    .alias('awa_query_guangyi_pptr')
     .action(async ({ session }, userId) => {
       if (!userId) {
         await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼 <角色ID>`)
