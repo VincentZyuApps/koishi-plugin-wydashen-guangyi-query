@@ -3,6 +3,7 @@ import { renderWingCanvas } from '../gen/gen_image_canvas'
 import type { Config } from '../config'
 import path from 'path'
 import type { WingMapManager } from '../utils'
+import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
   ctx.command(config.canvasCommandName + ' <userId:string>')
@@ -23,6 +24,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
 
         ctx.logger.debug(`[Canvas] Querying wing data from: ${apiUrl}`)
 
+        const apiStartTime = Date.now()
         const response = await ctx.http.get(apiUrl)
 
         if (!response.success) {
@@ -51,6 +53,9 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         }
 
         ctx.logger.debug(`[Canvas] Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+
+        const apiElapsed = Date.now() - apiStartTime
+        const queryTime = new Date()
 
         if (config.verboseConsoleLog) {
           const unknownSpirits = wingData.wing_buffs
@@ -94,6 +99,12 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         }
 
         await session.send(msg)
+
+        if (config.enableQQMarkdown && (session.platform === 'qq' || session.platform === 'qqguild')) {
+          const md = buildQueryMarkdown(apiElapsed, userId, queryTime)
+          const kb = buildQueryKeyboard(config, userId, config.qqMarkdownKeyboardJson)
+          await sendQQMarkdown(session, md, kb)
+        }
       } catch (error) {
         ctx.logger.error(`[Canvas] Error querying wings: ${error}`)
 

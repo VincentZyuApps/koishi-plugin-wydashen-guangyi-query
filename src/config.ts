@@ -2,30 +2,33 @@ import { Schema } from 'koishi'
 import path from 'path'
 import { IMAGE_TYPES } from './types'
 import { categoryOrder } from './const'
+import { stringifyCompact } from './qq_markdown'
 
 export interface Config {
+  // ----- ⚙️ 后端设置 -----
   backendUrl: string;
   wyWingMapUrl: string;
 
+  // ----- 📁 路径设置 -----
   backgroundImagePath: string;
   tutorialImagePath: string;
   skyAppXmlFilePath: string;
 
+  // ----- 🎮 指令设置 -----
   enableImagePptrCommand: boolean;
-  enableTextCommand: boolean;
-  enableForwardCommand: boolean;
-  enableCanvasCommand: boolean;
-  enableTutorialCommand: boolean;
-  enableRefreshCommand: boolean;
-
   pptrCommandName: string;
+  enableTextCommand: boolean;
   textCommandName: string;
-  textMaxLength: number;
+  enableForwardCommand: boolean;
   forwardCommandName: string;
+  enableCanvasCommand: boolean;
   canvasCommandName: string;
+  enableTutorialCommand: boolean;
   tutorialCommandName: string;
+  enableRefreshCommand: boolean;
   refreshCommandName: string;
 
+  // ----- 🎨 Puppeteer 图片渲染设置 -----
   separateByCategory: boolean;
   containerWidth: number;
   viewportWidth: number;
@@ -36,6 +39,10 @@ export interface Config {
   puppeteerShowPortalIcons: boolean;
   puppeteerShowRenderInfo: boolean;
 
+  // ----- 📝 文字输出设置 -----
+  textMaxLength: number;
+
+  // ----- 🎨 Canvas 图片渲染设置 -----
   canvasDarkMode: boolean;
   canvasWidth: number;
   canvasScale: number;
@@ -47,6 +54,11 @@ export interface Config {
   canvasQuality: number;
   canvasShowRenderInfo: boolean;
 
+  // ----- 🤖 QQ 官方 Bot 平台设置 -----
+  enableQQMarkdown: boolean;
+  qqMarkdownKeyboardJson: string;
+
+  // ----- 🛠️ 调试设置 -----
   verboseConsoleLog: boolean;
 }
 
@@ -205,6 +217,31 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(true)
       .description('📊 Canvas: 在图片消息后显示渲染耗时统计'),
   }).description('🎨 @napi-rs/canvas 图片渲染设置'),
+
+  Schema.object({
+    enableQQMarkdown: Schema.boolean()
+      .default(true)
+      .description('💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮消息'),
+    qqMarkdownKeyboardJson: Schema.string()
+      .role('textarea', { rows: [5, 10] })
+      .default(stringifyCompact({
+        rows: [
+          {
+            buttons: [
+              { render_data: { label: '🎨 canvas出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${canvasCommandName} ${userId}', enter: true } },
+              { render_data: { label: '🖼️ pptr出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${pptrCommandName} ${userId}', enter: true } },
+            ],
+          },
+          {
+            buttons: [
+              { render_data: { label: '🎮 玩玩别的', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '帮助菜单', enter: true } },
+              { render_data: { label: '📚 获取id教程', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${tutorialCommandName}', enter: true } },
+            ],
+          },
+        ],
+      }))
+      .description('📋 QQ Markdown 按钮 JSON 配置<br><em>支持变量: <code>${canvasCommandName}</code> <code>${pptrCommandName}</code> <code>${tutorialCommandName}</code> <code>${userId}</code></em>'),
+  }).description('🤖 QQ 官方 Bot 平台设置'),
 
   Schema.object({
     verboseConsoleLog: Schema.boolean()

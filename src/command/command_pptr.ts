@@ -4,6 +4,7 @@ import type { Config } from '../config'
 import { renderWingImage } from '../gen/gen_image_pptr'
 import type { WingMapManager } from '../utils'
 import path from 'path'
+import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
 
 export function registerPptrCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
   ctx.command(config.pptrCommandName + ' <userId:string>')
@@ -27,6 +28,7 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
 
         ctx.logger.debug(`Querying wing data from: ${apiUrl}`)
 
+        const apiStartTime = Date.now()
         const response = await ctx.http.get(apiUrl)
 
         if (!response.success) {
@@ -55,6 +57,9 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
         }
 
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+
+        const apiElapsed = Date.now() - apiStartTime
+        const queryTime = new Date()
 
         if (config.verboseConsoleLog) {
           const unknownSpirits = wingData.wing_buffs
@@ -87,6 +92,13 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
         }
 
         await session.send(msg);
+
+        if (config.enableQQMarkdown && (session.platform === 'qq' || session.platform === 'qqguild')) {
+          const md = buildQueryMarkdown(apiElapsed, userId, queryTime)
+          const kb = buildQueryKeyboard(config, userId, config.qqMarkdownKeyboardJson)
+          await sendQQMarkdown(session, md, kb)
+        }
+
         return;
       } catch (error) {
         ctx.logger.error(`Error querying wings: ${error}`)
