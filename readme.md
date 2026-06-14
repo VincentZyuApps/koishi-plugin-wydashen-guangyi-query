@@ -46,7 +46,7 @@
 
 ### 查询光翼 \<玩家id\>
 > 返回结果
-![assets/query_res.png](assets/query_res.png)
+![assets/gen_image_pptr.png](assets/gen_image_pptr.png)
 
 ### 查询光翼-canvas \<玩家id\>
 > 返回结果（示例）
@@ -54,7 +54,7 @@
 
 ### 获取id方法
 > 返回结果
-![assets/tutorial_new_20251026.png](assets/tutorial_new_20251026.png)
+![assets/tutorial_20260614_html.png](assets/tutorial_20260614_html.png)
 
 ---
 

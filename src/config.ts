@@ -30,7 +30,9 @@ export interface Config {
   viewportWidth: number;
   imageType: string;
   screenshotQuality: number;
+  puppeteerFontPath: string;
   puppeteerShowPortalIcons: boolean;
+  puppeteerShowRenderInfo: boolean;
 
   canvasDarkMode: boolean;
   canvasWidth: number;
@@ -40,6 +42,7 @@ export interface Config {
   canvasShowPortalIcons: boolean;
   canvasImageType: string;
   canvasQuality: number;
+  canvasShowRenderInfo: boolean;
 
   verboseConsoleLog: boolean;
 }
@@ -63,7 +66,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .description(`🖼️ 背景图片路径`),
     tutorialImagePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/tutorial_new_20251026.png'))
+      .default(path.resolve(__dirname, '../assets/tutorial_20260614_html.png'))
       .description(`📚 查询光翼使用方法教程图片路径`),
     skyAppXmlFilePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
@@ -76,7 +79,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(true)
       .description('🖼️ 注册 Puppeteer 渲染图片的指令'),
     pptrCommandName: Schema.string()
-      .default('查询光翼-image')
+      .default('查询光翼-pptr')
       .description('🖼️ Puppeteer 指令名称'),
     enableTextCommand: Schema.boolean()
       .default(false)
@@ -135,9 +138,16 @@ export const Config: Schema<Config> = Schema.intersect([
       .min(0).max(100).step(1)
       .default(80)
       .description('📏 Puppeteer 截图质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
+    puppeteerFontPath: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .default(path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'))
+      .description('🔤 Puppeteer: 中文字体文件路径 (绝对路径)'),
     puppeteerShowPortalIcons: Schema.boolean()
       .default(true)
       .description('🚪 Puppeteer: 是否显示地图传送门图标'),
+    puppeteerShowRenderInfo: Schema.boolean()
+      .default(true)
+      .description('📊 Puppeteer: 在图片消息后显示渲染耗时统计'),
   }).description('🎨 Puppeteer图片渲染设置'),
 
   Schema.object({
@@ -174,6 +184,9 @@ export const Config: Schema<Config> = Schema.intersect([
       .min(0).max(100).step(1)
       .default(90)
       .description('📏 Canvas: JPEG 质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
+    canvasShowRenderInfo: Schema.boolean()
+      .default(true)
+      .description('📊 Canvas: 在图片消息后显示渲染耗时统计'),
   }).description('🎨 @napi-rs/canvas 图片渲染设置'),
 
   Schema.object({

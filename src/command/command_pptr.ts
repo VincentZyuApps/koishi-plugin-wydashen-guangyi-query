@@ -16,6 +16,7 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
         return;
       }
 
+      const startTime = Date.now()
       const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}✨正在查询，请稍候...`);
 
       try {
@@ -53,6 +54,16 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
 
         ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
+        if (config.verboseConsoleLog) {
+          const unknownSpirits = wingData.wing_buffs
+            .filter((w: any) => w.name.startsWith('s_'))
+            .filter((w: any) => !wingMapManager.getSpiritName(w.name))
+          if (unknownSpirits.length > 0) {
+            ctx.logger.warn(`🔍❓ [Pptr] userId ${userId} 有 ${unknownSpirits.length} 个未知先祖光翼:`)
+            unknownSpirits.forEach((w: any, idx: number) => ctx.logger.warn(`  - 第 ${idx + 1} 个光翼 (idx:${idx}): ${w.name} | collected: ${w.collected} | deposited: ${w.deposited}`))
+          }
+        }
+
         const portalIconsPathStr = path.resolve(__dirname, '../../assets/portal');
 
         const screenshot = await renderWingImage(
@@ -60,10 +71,20 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
           config.backgroundImagePath, wingMapManager,
           config.separateByCategory, config.containerWidth, config.viewportWidth,
           config.imageType, config.screenshotQuality,
-          config.puppeteerShowPortalIcons, portalIconsPathStr
+          config.puppeteerShowPortalIcons, portalIconsPathStr,
+          config.puppeteerFontPath
         )
 
-        await session.send(`${h.quote(session.messageId)}${h.image(`data:image/${config.imageType};base64,${screenshot}`)}`);
+        const elapsed = Date.now() - startTime
+        ctx.logger.info(`🖼️✅ [Pptr] 渲染完成 ✨: ${elapsed}ms ⏱️ | userId: ${userId} 👤`)
+
+        let msg = `${h.quote(session.messageId)}${h.image(`data:image/${config.imageType};base64,${screenshot}`)}`
+
+        if (config.puppeteerShowRenderInfo) {
+          msg += `\n(🖼️ Puppeteer 渲染耗时：${elapsed}ms | 类型：${config.imageType} | 质量：${config.screenshotQuality})`
+        }
+
+        await session.send(msg);
         return;
       } catch (error) {
         ctx.logger.error(`Error querying wings: ${error}`)

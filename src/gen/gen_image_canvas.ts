@@ -1,4 +1,4 @@
-import { createCanvas, GlobalFonts, SKRSContext2D, Canvas } from '@napi-rs/canvas'
+import { createCanvas, GlobalFonts, SKRSContext2D, Canvas, Image, loadImage } from '@napi-rs/canvas'
 import { existsSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 import { processWingData, groupWingsByCategory, calcWingStats, WingDisplayData, WingData, WingMapItem } from '../utils'
@@ -52,36 +52,6 @@ const themes = {
 }
 
 type Theme = typeof themes.light
-
-const categoryColors: Record<string, string> = {
-  '遇境': '#a0cfff',
-  '云巢': '#85ecef',
-  '晨岛': '#fad390',
-  '云野': '#b9f6ca',
-  '雨林': '#80deea',
-  '霞谷': '#ffcc80',
-  '暮土': '#d1c4e9',
-  '禁阁': '#9fa8da',
-  '暴风眼': '#cfd8dc',
-  '普通永久': '#90caf9',
-  '复刻永久': '#ffe0b2',
-  '破晓季': '#f48fb1',
-}
-
-const darkCategoryColors: Record<string, string> = {
-  '遇境': '#5a7fa8',
-  '云巢': '#4a8a8a',
-  '晨岛': '#8a6a40',
-  '云野': '#4a7a56',
-  '雨林': '#3a7a84',
-  '霞谷': '#8a5a30',
-  '暮土': '#6a5a7a',
-  '禁阁': '#5a6aa8',
-  '暴风眼': '#5a5a60',
-  '普通永久': '#3a6a8a',
-  '复刻永久': '#8a6a46',
-  '破晓季': '#7a3a50',
-}
 
 const portalIconMap: Record<string, string> = {
   '晨岛': 'chendao.png',
@@ -204,7 +174,7 @@ function drawCard(ctx: SKRSContext2D, wing: WingDisplayData, t: Theme, dark: boo
   ctx.restore()
 
   const cx = x + w / 2
-  const padding = 8
+  const padding = 5
 
   // 1. Status badge
   const badgeText = `${cfg.emoji} ${cfg.label} ${cfg.symbol}`
@@ -217,18 +187,30 @@ function drawCard(ctx: SKRSContext2D, wing: WingDisplayData, t: Theme, dark: boo
   drawText(ctx, badgeText, cx, badgeY + 18, style.text, 16, 700, 'center')
 
   // 2. Wing name (English)
-  drawText(ctx, wing.name, cx, y + 48, t.text, 15, 600, 'center')
+  drawText(ctx, wing.name, cx, y + 43, t.text, 15, 600, 'center')
 
   // 3. Spirit / map label
   const isSpirit = wing.name.startsWith('s_')
   const spiritName = getSpiritName(wing.name)
-  const label = isSpirit ? (spiritName ? `【${spiritName}】` : '【暂时不知道】') : '【地图光翼】'
-  drawText(ctx, label, cx, y + 70, t.textSecondary, 15, 700, 'center', 'alphabetic', true)
+  const label = isSpirit ? (spiritName ? `【👻${spiritName}】` : '【❓暂时不知道】') : '【🗺️地图光翼】'
+  drawText(ctx, label, cx, y + 63, t.textSecondary, 15, 700, 'center', 'alphabetic', true)
 
-  // 4. Category + subcategory (same line)
-  const catColor = dark ? darkCategoryColors[wing.category] || t.textMuted : categoryColors[wing.category] || t.textMuted
-  const subText = wing.subCategory ? ` · ${wing.subCategory}` : ''
-  drawText(ctx, `${wing.category}${subText}`, cx, y + h - 16, catColor, 14, 700, 'center')
+  // 4. Category + subcategory (same line, different sizes: ratio ~1:0.618)
+  const catColor = t.title
+  const tagY = y + h - 12
+  setFont(ctx, 16, 700)
+  const catW = ctx.measureText(wing.category).width
+  const subLabel = wing.subCategory ? ` · ${wing.subCategory}` : ''
+  let subW = 0
+  if (subLabel) {
+    setFont(ctx, 10, 600, true)
+    subW = ctx.measureText(subLabel).width
+  }
+  const tagStartX = cx - (catW + subW) / 2
+  drawText(ctx, wing.category, tagStartX, tagY, catColor, 16, 700)
+  if (subLabel) {
+    drawText(ctx, subLabel, tagStartX + catW, tagY, catColor, 10, 600, 'left', 'alphabetic', true)
+  }
 }
 
 function drawStatsBar(ctx: SKRSContext2D, t: Theme, x: number, y: number, w: number, stats: { label: string; value: number }[]) {
@@ -255,30 +237,28 @@ function drawHeader(ctx: SKRSContext2D, t: Theme, x: number, y: number, w: numbe
   return h
 }
 
-function drawCategoryHeader(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, count: number, collected: number, portalIcon?: Buffer) {
+function drawCategoryHeader(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, count: number, collected: number, portalIcon?: Image) {
   const h = 42
   fillRoundRect(ctx, x, y, w, h, 10, t.categoryHeader)
   strokeRoundRect(ctx, x, y, w, h, 10, t.border, 1)
 
-  let iconX = x + 14
+  const labelX = x + 14
+  drawText(ctx, `🏷️ ${category}`, labelX, y + 27, t.title, 18, 900)
+
   if (portalIcon) {
     try {
-      const img = new (require('@napi-rs/canvas').Image)()
-      img.src = portalIcon
+      setFont(ctx, 18, 900)
       const iconH = 22
-      const iconW = (img.width / img.height) * iconH
-      ctx.drawImage(img, iconX, y + (h - iconH) / 2, iconW, iconH)
-      iconX += iconW + 8
-    } catch {
-      // ignore
+      const iconW = (portalIcon.width / portalIcon.height) * iconH
+      const labelW = ctx.measureText(`🏷️ ${category}`).width
+      ctx.drawImage(portalIcon, labelX + labelW + 8, y + (h - iconH) / 2, iconW, iconH)
+    } catch (e) {
+      console.warn('⚠️🖼️ [Canvas] 加载 portal 图标失败:', e)
     }
   }
 
-  const catColor = dark ? darkCategoryColors[category] || t.title : categoryColors[category] || t.title
-  drawText(ctx, `🏷️ ${category}`, iconX, y + 27, catColor, 18, 900)
-
   const pct = ((collected / count) * 100).toFixed(1)
-  drawText(ctx, `总数: ${count} | 已收集: ${collected} | 进度: ${pct}%`, x + w - 14, y + 27, t.textSecondary, 12, 600, 'right')
+  drawText(ctx, `总数: ${count} | 已收集: ${collected} | 进度: ${pct}%`, x + w - 14, y + 27, t.textSecondary, 16, 600, 'right')
 
   return h
 }
@@ -288,7 +268,7 @@ function drawCardGrid(ctx: SKRSContext2D, wings: WingDisplayData[], t: Theme, da
   const gapX = 8
   const gapY = 8
   const cardW = (w - (cardsPerRow - 1) * gapX) / cardsPerRow
-  const cardH = 120
+  const cardH = 98
 
   wings.forEach((wing, i) => {
     const row = Math.floor(i / cardsPerRow)
@@ -301,15 +281,15 @@ function drawCardGrid(ctx: SKRSContext2D, wings: WingDisplayData[], t: Theme, da
   return Math.ceil(wings.length / cardsPerRow) * (cardH + gapY) - gapY
 }
 
-function drawSection(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, wings: WingDisplayData[], showPortalIcons: boolean, portalIconsPath: string, getSpiritName: (name: string) => string | undefined) {
+async function drawSection(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, wings: WingDisplayData[], showPortalIcons: boolean, portalIconsPath: string, getSpiritName: (name: string) => string | undefined): Promise<number> {
   const collected = wings.filter(w => w.collected).length
-  let portalIcon: Buffer | undefined
+  let portalIcon: Image | undefined
 
   if (showPortalIcons && portalIconsPath && portalIconMap[category]) {
     const iconPath = resolve(portalIconsPath, portalIconMap[category])
     if (existsSync(iconPath)) {
       try {
-        portalIcon = readFileSync(iconPath)
+        portalIcon = await loadImage(readFileSync(iconPath))
       } catch {
         portalIcon = undefined
       }
@@ -393,7 +373,7 @@ export async function renderWingCanvas(
 
   if (separateByCategory) {
     for (const section of categorySections) {
-      const h = drawSection(ctx, t, darkMode, padding, currentY, innerW, section.category, section.wings, showPortalIcons, portalIconsPath, getSpiritName)
+      const h = await drawSection(ctx, t, darkMode, padding, currentY, innerW, section.category, section.wings, showPortalIcons, portalIconsPath, getSpiritName)
       currentY += h + 16
     }
   } else {

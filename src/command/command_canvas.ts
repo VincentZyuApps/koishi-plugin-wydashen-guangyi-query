@@ -14,6 +14,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         return
       }
 
+      const startTime = Date.now()
       const waitTipMsgIdArr = await session.send(`${h.quote(session.messageId)}🎨 正在查询 (Canvas 渲染器)，请稍候...`)
 
       try {
@@ -51,6 +52,16 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
 
         ctx.logger.debug(`[Canvas] Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
 
+        if (config.verboseConsoleLog) {
+          const unknownSpirits = wingData.wing_buffs
+            .filter((w: any) => w.name.startsWith('s_'))
+            .filter((w: any) => !wingMapManager.getSpiritName(w.name))
+          if (unknownSpirits.length > 0) {
+            ctx.logger.warn(`🔍❓ [Canvas] userId ${userId} 有 ${unknownSpirits.length} 个未知先祖光翼:`)
+            unknownSpirits.forEach((w: any, idx: number) => ctx.logger.warn(`  - 第 ${idx + 1} 个光翼 (idx:${idx}): ${w.name} | collected: ${w.collected} | deposited: ${w.deposited}`))
+          }
+        }
+
         const portalIconsPathStr = path.resolve(__dirname, '../../assets/portal')
 
         const buf = await renderWingCanvas(
@@ -72,7 +83,17 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
           }
         )
 
-        await session.send(`${h.quote(session.messageId)}${h.image(buf, `image/${config.canvasImageType}`)}`)
+        const elapsed = Date.now() - startTime
+        ctx.logger.info(`🎨✅ [Canvas] 渲染完成 ✨: ${elapsed}ms ⏱️ | userId: ${userId} 👤`)
+
+        const modeText = config.canvasDarkMode ? 'dark' : 'light'
+        let msg = `${h.quote(session.messageId)}${h.image(buf, `image/${config.canvasImageType}`)}`
+
+        if (config.canvasShowRenderInfo) {
+          msg += `\n(🎨 Canvas 渲染耗时：${elapsed}ms | 缩放：${config.canvasScale}x | 模式：${modeText})`
+        }
+
+        await session.send(msg)
       } catch (error) {
         ctx.logger.error(`[Canvas] Error querying wings: ${error}`)
 

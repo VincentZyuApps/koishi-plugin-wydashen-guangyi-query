@@ -41,9 +41,6 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
     statusIcon = '✗'
   }
   
-  // 如果没有二级标签，显示横杠占位
-  const subCategoryDisplay = wing.subCategory || '-'
-  
   return `
     <div class="wing-card ${statusClass}">
       <div class="wing-icon-status">
@@ -54,11 +51,10 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
       <div class="wing-name">
         ${wing.name}
         ${wing.name.startsWith('s_') && wingMapManager?.getSpiritName(wing.name)
-          ? `<span class="map-wl-or-spirit-name">【${wingMapManager.getSpiritName(wing.name)}】</span>`
-          : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【地图光翼】</span>` : '<span class="unknown-name">【暂时不知道】</span>'}
+          ? `<span class="map-wl-or-spirit-name">【👻${wingMapManager.getSpiritName(wing.name)}】</span>`
+          : !wing.name.startsWith('s_') ? `<span class="map-wl-or-spirit-name">【🗺️地图光翼】</span>` : '<span class="unknown-name">【❓暂时不知道】</span>'}
       </div>
-      <div class="wing-category">${wing.category}</div>
-      <div class="wing-subcategory">${subCategoryDisplay}</div>
+      <div class="wing-tags"><span class="wing-category">${wing.category}</span>${wing.subCategory ? ` <span class="wing-subcategory">(${wing.subCategory})</span>` : ''}</div>
     </div>
   `
 }
@@ -67,10 +63,10 @@ function generateWingCardHtml(wing: WingDisplayData, wingMapManager?: any): stri
  * 生成光翼查询结果的 HTML
  */
 function generateWingHtml(
-  roleId: string, wings: WingDisplayData[], 
-  bgBase64?: string, bgOffset?: number, wingMapManager?: any, 
+  roleId: string, wings: WingDisplayData[],
+  bgBase64?: string, bgOffset?: number, wingMapManager?: any,
   separateByCategory: boolean = false, containerWidth: number = 1300, viewportWidth: number = 1500,
-  showPortalIcons: boolean = false, portalIconsPath: string = ''
+  showPortalIcons: boolean = false, portalIconsPath: string = '', fontBase64: string = ''
 ): string {
   // 按分类分组
   const groupedByCategory = new Map<string, WingDisplayData[]>()
@@ -135,7 +131,7 @@ function generateWingHtml(
       // 添加分类标题
       wingsHtml += `
         <div class="category-header">
-          <div class="category-title">${iconHtml} 🏷️ ${category}</div>
+          <div class="category-title">🏷️ ${category} ${iconHtml}</div>
           <div class="category-stats">总数: ${categoryTotal} | 已收集: ${categoryCollected} | 进度: ${((categoryCollected / categoryTotal) * 100).toFixed(1)}%</div>
         </div>
       `
@@ -168,6 +164,7 @@ function generateWingHtml(
 <head>
   <meta charset="UTF-8">
   <style>
+    ${fontBase64 ? `@font-face { font-family: 'CustomFont'; src: url('data:font/truetype;base64,${fontBase64}'); }` : ''}
     * {
       margin: 0;
       padding: 0;
@@ -186,7 +183,7 @@ function generateWingHtml(
            background-repeat: no-repeat;`
         : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`
       }
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: ${fontBase64 ? "'CustomFont', " : ''}-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
       padding: 20px;
       color: #333;
       line-height: 1.2;
@@ -287,7 +284,7 @@ function generateWingHtml(
     
     .wings-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 6px 6px;
       padding: 10px 0;
     }
@@ -324,7 +321,8 @@ function generateWingHtml(
 
     .portal-icon {
       height: 40px;
-      margin-right: 15px;
+      margin-left: 20px;
+      margin-right: 0;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
     
@@ -353,9 +351,12 @@ function generateWingHtml(
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      min-height: 180px;
+      justify-content: flex-start;
+      gap: 4px;
+      min-height: 120px;
       line-height: 1.2;
+      width: 100%;
+      overflow: hidden;
     }
     
     .wing-card.collected {
@@ -394,7 +395,7 @@ function generateWingHtml(
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 3px;
       padding: 4px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.13);
@@ -439,11 +440,13 @@ function generateWingHtml(
     }
     
     .wing-name {
-      font-size: 9.99px;
+      font-size: 14px;
       font-weight: 600;
       color: #1a2332;
       margin-bottom: 4px;
-      word-break: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       flex: 1;
       display: flex;
       align-items: center;
@@ -458,11 +461,11 @@ function generateWingHtml(
         1px 1px 0 #fff,
         0 0 6px rgba(255, 255, 255, 0.9),
         0 2px 8px rgba(0, 0, 0, 0.2);
-      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-family: ${fontBase64 ? "'CustomFont', " : ''}'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
-    
+
     .map-wl-or-spirit-name {
-      font-size: 18px;
+      font-size: 19px;
       color: #5a3a7d;
       font-weight: 700;
       font-style: italic;
@@ -487,14 +490,17 @@ function generateWingHtml(
         0 0 6px rgba(255, 255, 255, 0.9);
     }
     
-    .wing-category {
-      font-size: 30px;
-      color: #4a5dc9;
-      font-weight: 900;
+    .wing-tags {
       margin-bottom: 3px;
       line-height: 1.2;
+    }
+
+    .wing-category {
+      font-size: 19px;
+      color: #4a5dc9;
+      font-weight: 900;
       letter-spacing: 1px;
-      text-shadow: 
+      text-shadow:
         -2px -2px 0 #fff,
         2px -2px 0 #fff,
         -2px 2px 0 #fff,
@@ -502,15 +508,13 @@ function generateWingHtml(
         0 0 10px rgba(255, 255, 255, 0.9),
         0 2px 12px rgba(74, 93, 201, 0.4);
     }
-    
+
     .wing-subcategory {
-      font-size: 20px;
+      font-size: 12px;
       color: #5a3a7d;
       font-weight: 700;
-      margin-bottom: 2.5px;
-      line-height: 1.2;
       font-style: italic;
-      text-shadow: 
+      text-shadow:
         -1px -1px 0 #fff,
         1px -1px 0 #fff,
         -1px 1px 0 #fff,
@@ -596,7 +600,8 @@ export async function renderWingImage(
   imageType: string = 'png',
   screenshotQuality: number = 80,
   showPortalIcons: boolean = false,
-  portalIconsPath: string = ''
+  portalIconsPath: string = '',
+  fontPath: string = ''
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -619,9 +624,14 @@ export async function renderWingImage(
         ctx.logger.warn(`Failed to load background image: ${error}`)
       }
     }
-    
+
+    let fontBase64 = ''
+    if (fontPath && fs.existsSync(fontPath)) {
+      try { fontBase64 = fs.readFileSync(fontPath).toString('base64') } catch {}
+    }
+
     // 生成 HTML
-    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory, containerWidth, viewportWidth, showPortalIcons, portalIconsPath)
+    const htmlContent = generateWingHtml(roleId, processedWings, bgBase64, bgOffset, wingMapManager, separateByCategory, containerWidth, viewportWidth, showPortalIcons, portalIconsPath, fontBase64)
     
     // 设置视口
     await browserPage.setViewport({

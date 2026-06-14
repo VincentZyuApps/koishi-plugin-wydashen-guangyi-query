@@ -79,7 +79,7 @@ export const inject = {
 }
 
 export function apply(ctx: Context, config: Config) {
-  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath);
+  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath, config.verboseConsoleLog);
 
   ctx.on('ready', async () => {
     await wingMapManager.initialize();

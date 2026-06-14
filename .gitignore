@@ -16,10 +16,3 @@ tsconfig.tsbuildinfo
 *.ntvs*
 *.njsproj
 *.sln
-
-# Build output / test output
-bin/
-output/
-
-# Runtime generated cache
-assets/wingTagMap.json

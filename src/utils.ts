@@ -164,7 +164,7 @@ export class WingMapManager {
   private spiritNameMap: Map<string, string> = new Map();
   private readonly xmlPath: string;
 
-  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string) {
+  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string, private verboseLog: boolean = false) {
     this.wingMapPath = WING_MAP_FILE;
     this.fallbackMap = [...WingTagMap, ...ExtraWingTagMap];
     this.xmlPath = skyAppXmlPath;
@@ -204,6 +204,21 @@ export class WingMapManager {
     }
 
     this.ctx.logger.info(`✅ 光翼映射管理器初始化完成 WingMapManager initialized! Total wings loaded: ${this.wingMap.length}`);
+
+    if (this.verboseLog) {
+      const unknownSpirits = this.wingMap
+        .filter(item => item.光翼名字.startsWith('s_'))
+        .filter(item => !this.getSpiritName(item.光翼名字))
+      if (unknownSpirits.length > 0) {
+        this.ctx.logger.warn(`🔍❓ 光翼映射表中发现 ${unknownSpirits.length} 个未知先祖光翼（不在 XML 映射中）:`)
+        unknownSpirits.forEach((item, idx) => {
+          const no = idx + 1
+          this.ctx.logger.warn(`  - .\\src\\const.ts 里 WingTagMap 的第 ${no} 个 (idx:${idx}): ${item.光翼名字} | 一级标签: ${item.一级标签} | 二级标签: ${item.二级标签}`)
+        })
+      } else {
+        this.ctx.logger.info(`✅ 光翼映射表中的先祖光翼全部有名称映射`)
+      }
+    }
   }
 
   private async loadWingMap(): Promise<void> {
