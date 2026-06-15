@@ -1,5 +1,22 @@
 import { h } from 'koishi'
 
+export const DEFAULT_KEYBOARD_ROWS = {
+  rows: [
+    {
+      buttons: [
+        { render_data: { label: '🎨 canvas出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${canvasCommandName} ${userId}', enter: true } },
+        { render_data: { label: '🖼️ pptr出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${pptrCommandName} ${userId}', enter: true } },
+      ],
+    },
+    {
+      buttons: [
+        { render_data: { label: '🎮 玩玩别的', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '帮助菜单', enter: true } },
+        { render_data: { label: '📚 获取id教程', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${tutorialCommandName}', enter: true } },
+      ],
+    },
+  ],
+}
+
 export function buildQueryMarkdown(apiElapsed: number, userId: string, queryTime: Date): string {
   const timeStr = queryTime.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
   return [
@@ -16,40 +33,28 @@ export function buildQueryKeyboard(
   userId: string,
   customJson?: string,
 ): object {
+  let raw: string
   if (customJson) {
-    try {
-      let raw = customJson
-      raw = raw.replace(/\$\{canvasCommandName\}/g, cmds.canvasCommandName)
-      raw = raw.replace(/\$\{pptrCommandName\}/g, cmds.pptrCommandName)
-      raw = raw.replace(/\$\{tutorialCommandName\}/g, cmds.tutorialCommandName)
-      raw = raw.replace(/\$\{userId\}/g, userId)
-      const parsed = JSON.parse(raw)
-      if (parsed?.rows?.length) return parsed
-    } catch {}
+    raw = customJson
+  } else {
+    raw = JSON.stringify(DEFAULT_KEYBOARD_ROWS)
   }
-  return {
-    rows: [
-      {
-        buttons: [
-          { render_data: { label: '🎨 canvas出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: `${cmds.canvasCommandName} ${userId}`, enter: true } },
-          { render_data: { label: '🖼️ pptr出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: `${cmds.pptrCommandName} ${userId}`, enter: true } },
-        ],
-      },
-      {
-        buttons: [
-          { render_data: { label: '🎮 玩玩别的', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '帮助菜单', enter: true } },
-          { render_data: { label: '📚 获取id教程', style: 1 }, action: { type: 2, permission: { type: 2 }, data: cmds.tutorialCommandName, enter: true } },
-        ],
-      },
-    ],
-  }
+  try {
+    raw = raw.replace(/\$\{canvasCommandName\}/g, cmds.canvasCommandName)
+    raw = raw.replace(/\$\{pptrCommandName\}/g, cmds.pptrCommandName)
+    raw = raw.replace(/\$\{tutorialCommandName\}/g, cmds.tutorialCommandName)
+    raw = raw.replace(/\$\{userId\}/g, userId)
+    const parsed = JSON.parse(raw)
+    if (parsed?.rows?.length) return parsed
+  } catch {}
+  return DEFAULT_KEYBOARD_ROWS
 }
 
 export async function sendQQMarkdown(
   session: any,
   markdown: string,
   keyboard: object,
-  _msgSeq: number,
+  _msgSeq?: number,
 ): Promise<void> {
   try {
     const isCrack = !!(session.bot as any)?.config?.autoStreamText
