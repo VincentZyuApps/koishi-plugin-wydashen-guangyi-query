@@ -6,7 +6,58 @@
 GET /
 ```
 
-返回服务基本信息。
+**请求示例：**
+```bash
+curl "http://bluerosion.vincentzyu233.cn:51024/"
+```
+
+**返回示例：**
+```json
+{
+  "service": "网易大神光翼查询 API",
+  "timestamp_unix": 1749984931,
+  "timestamp_formatted": "2026年6月15日00:45:31",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/",
+      "description": "服务根路径，返回所有可用端点和用法"
+    },
+    {
+      "method": "GET",
+      "path": "/checkhealth",
+      "description": "健康检查，查看 Frida / Token / ADB / 自动登录状态",
+      "responses": {
+        "200": "服务正常，返回完整状态信息",
+        "503": "Token 未就绪或签名服务初始化中"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/queryGuangyi?id={roleId}",
+      "description": "查询指定角色的光翼数据",
+      "parameters": { "id": "角色 ID（必填）" },
+      "example": "/queryGuangyi?id=137106295",
+      "responses": {
+        "200": "查询成功，返回光翼数据",
+        "400": "业务错误（如参数错误 code=803）",
+        "401": "Token 已过期",
+        "503": "签名服务或 Token 未就绪"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/refreshToken",
+      "description": "手动触发 Token 刷新（通过 URS 凭据自动登录）",
+      "responses": {
+        "200": "刷新成功，返回新 Token 预览",
+        "500": "刷新失败",
+        "503": "签名服务未就绪"
+      }
+    }
+  ]
+}
+```
 
 ### 2. 健康检查
 
@@ -14,11 +65,20 @@ GET /
 GET /checkhealth
 ```
 
-返回示例：
+**请求示例：**
+```bash
+curl "http://bluerosion.vincentzyu233.cn:51024/checkhealth"
+```
+
+**返回示例（200）：**
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2025-10-24T12:00:00.000000",
+  "status": "ok",
+  "code": 200,
+  "timestamp": "2026-06-14T22:41:09.610351",
+  "frida_ready": true,
+  "token_captured": true,
+  "token_preview": "89bb282f...",
   "checks": {
     "frida_connected": true,
     "process_found": true,
@@ -29,7 +89,35 @@ GET /checkhealth
     "adb_path": "G:\\SSoftwareFiles\\mumu\\MuMu Player 12\\shell\\adb.exe",
     "package": "com.netease.gl",
     "server": "8000"
+  },
+  "auto_login": {
+    "available": true,
+    "last_refresh_at": "2026-06-14T03:32:11.258364",
+    "has_error": false,
+    "gl_version": "4.3.0",
+    "device_id_cached": true,
+    "device_id_cached_on_disk": true
   }
+}
+```
+
+**错误返回（503）：**
+
+Token 未就绪：
+```json
+{
+  "status": "token_refresh_needed",
+  "code": 503,
+  "message": "Token 未就绪或已过期，请在 APP 中执行一次光翼查询以自动刷新"
+}
+```
+
+签名服务初始化中：
+```json
+{
+  "status": "initializing",
+  "code": 503,
+  "message": "签名服务正在初始化"
 }
 ```
 
@@ -60,22 +148,14 @@ curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
 }
 ```
 
-### 4. 重新连接 Frida
-
-```
-POST /reconnect
-```
-
-用于调试时手动重新连接 Frida。
-
 ## 使用示例
 
 ### Python 测试脚本
 ```shell
-python test_client.py
+python ./scripts/test.py
 ```
 
-### Python 客户端
+### Python 写法
 
 ```python
 import requests
@@ -89,7 +169,7 @@ response = requests.get("http://bluerosion.vincentzyu233.cn:51024/queryGuangyi",
 print(response.json())
 ```
 
-### JavaScript 客户端
+### JavaScript 写法
 
 ```javascript
 // 健康检查
@@ -105,10 +185,22 @@ fetch('http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
 
 ### cURL
 
-```bash
-# 健康检查
-curl http://bluerosion.vincentzyu233.cn:51024/checkhealth
+### Linux Bash
 
+```bash
+curl "http://bluerosion.vincentzyu233.cn:51024/" | jq
+# 健康检查
+curl "http://bluerosion.vincentzyu233.cn:51024/checkhealth" | jq
 # 查询光翼数据
-curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
+curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295" | jq
+```
+
+### Windows Powershell
+
+```powershell
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+# 健康检查
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/checkhealth").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+# 查询光翼数据
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
 ```
