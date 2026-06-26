@@ -525,6 +525,8 @@ export const WingTagMap = [
   { "光翼名字": "l_MainStreet_FunArmada_1", "一级标签": "狂欢船队", "二级标签": "狂欢季" },
   // No.258 👻 🔄 ⬜
   { "光翼名字": "s_mope", "一级标签": "复刻永久", "二级标签": "" },
+  // No.259 👻 🔄 ⬜
+  { "光翼名字": "s_rhythmicclap", "一级标签": "复刻永久", "二级标签": "" },
 ] as const;
 
 // ✨🔍 网易官方 JSON 未包含、但通过 Frida API 发现的额外光翼
