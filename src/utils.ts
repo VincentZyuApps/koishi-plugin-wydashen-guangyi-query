@@ -1,10 +1,17 @@
-import { Context } from 'koishi'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import path from 'path'
-import { parseString } from 'xml2js'
 import { promisify } from 'util'
-import { WingTagMap, ExtraWingTagMap } from './types'
+
+import { Context } from 'koishi'
+import { parseString } from 'xml2js'
+
 import { categoryOrder } from './const'
+import { WingTagMap, ExtraWingTagMap } from './types'
+
+const PLUGIN_NAME = 'wydashen-guangyi-query'
+const LXGW_FONT_FILE = 'LXGWWenKaiMono-Regular.ttf'
+const LXGW_FONT_URL = `http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/${LXGW_FONT_FILE}`
 
 // ============================================================
 // 📄🔍 XML 解析工具
@@ -149,6 +156,24 @@ export function calcWingStats(wings: WingDisplayData[]) {
   const deposited = wings.filter(w => w.isFromAPI && w.name.startsWith('s_') && !w.collected).length
   const notRedeemed = wings.filter(w => !w.isFromAPI && w.name.startsWith('s_')).length
   return { total, collected, deposited, notRedeemed }
+}
+
+export async function ensureBundledFonts(ctx: Context): Promise<void> {
+  const fontsDir = path.resolve(__dirname, '../assets/fonts')
+  const lxgwFontPath = path.join(fontsDir, LXGW_FONT_FILE)
+
+  if (existsSync(lxgwFontPath)) return
+
+  await fs.mkdir(fontsDir, { recursive: true })
+  ctx.logger.info(`[${PLUGIN_NAME}] 缺少字体文件，开始下载 ${LXGW_FONT_FILE}...`)
+
+  const response = await ctx.http.get(LXGW_FONT_URL, {
+    responseType: 'arraybuffer',
+    timeout: 60000,
+  })
+
+  await fs.writeFile(lxgwFontPath, Buffer.from(response))
+  ctx.logger.info(`[${PLUGIN_NAME}] 字体文件下载完成: ${LXGW_FONT_FILE} ✓`)
 }
 
 // ============================================================

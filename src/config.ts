@@ -1,8 +1,10 @@
-import { Schema } from 'koishi'
 import path from 'path'
-import { IMAGE_TYPES } from './types'
+
+import { Schema } from 'koishi'
+
 import { categoryOrder } from './const'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq_markdown'
+import { IMAGE_TYPES } from './types'
 
 export interface Config {
   // ----- ⚙️ 后端设置 -----
@@ -85,7 +87,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .description(`📚 查询光翼使用方法教程图片路径`),
     skyAppXmlFilePath: Schema.string()
       .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/0.14.8.xml'))
+      .default(path.resolve(__dirname, '../assets/0.16.0.xml'))
       .description(`📄 Sky App 导出的 XML 文件路径`),
   }).description('📁 路径设置'),
 
