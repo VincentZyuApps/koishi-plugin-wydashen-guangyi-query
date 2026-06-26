@@ -25,7 +25,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.on('ready', async () => {
     try {
-      await ensureBundledFonts()
+      await ensureBundledFonts(ctx)
     } catch (error) {
       ctx.logger.warn(`[${name}] 自动下载字体失败，将继续使用当前配置。错误: ${error}`)
     }
