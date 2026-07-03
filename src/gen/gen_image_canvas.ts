@@ -348,7 +348,7 @@ export async function renderWingCanvas(
     scale = 2,
     separateByCategory = true,
     showPortalIcons = true,
-    portalIconsPath = resolve(__dirname, '../../assets/portal'),
+    portalIconsPath = '',
     fontPath = '',
     emojiFontPath = '',
     imageType = 'png',

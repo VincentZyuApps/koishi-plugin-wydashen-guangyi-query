@@ -15,6 +15,51 @@ import { WingTagMap, ExtraWingTagMap } from './types'
 export const LXGW_WENKAI_FILE_NAME = 'LXGWWenKaiMono-Regular.ttf'
 export type FontRenderer = 'Puppeteer' | 'Canvas'
 
+export const DEFAULT_ASSET_ROOT_PATH = 'data/assets/wydashen-guangyi-query'
+
+export const SHARED_ASSET_FILES = {
+  backgroundImagePath: {
+    source: ['image', 'sky_bg.png'],
+    target: ['image', 'sky_bg.png'],
+  },
+  tutorialImagePath: {
+    source: ['tutorial', 'tutorial_20260614_html.png'],
+    target: ['tutorial', 'tutorial_20260614_html.png'],
+  },
+  skyAppXmlFilePath: {
+    source: ['xml', '0.16.0.xml'],
+    target: ['xml', '0.16.0.xml'],
+  },
+  wingMapPath: {
+    source: ['json', 'wingTagMap.json'],
+    target: ['json', 'wingTagMap.json'],
+  },
+  portalChendao: {
+    source: ['image', 'portal', 'chendao.png'],
+    target: ['image', 'portal', 'chendao.png'],
+  },
+  portalYunye: {
+    source: ['image', 'portal', 'yunye.png'],
+    target: ['image', 'portal', 'yunye.png'],
+  },
+  portalYulin: {
+    source: ['image', 'portal', 'yulin.png'],
+    target: ['image', 'portal', 'yulin.png'],
+  },
+  portalXiagu: {
+    source: ['image', 'portal', 'xiagu.png'],
+    target: ['image', 'portal', 'xiagu.png'],
+  },
+  portalMutu: {
+    source: ['image', 'portal', 'mutu.png'],
+    target: ['image', 'portal', 'mutu.png'],
+  },
+  portalJinge: {
+    source: ['image', 'portal', 'jinge.png'],
+    target: ['image', 'portal', 'jinge.png'],
+  },
+} as const
+
 const GITEE_RELEASE_BASE = 'https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts'
 const GITHUB_RELEASE_BASE = 'https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts'
 
@@ -51,8 +96,50 @@ export function getLxgwWenKaiPathByBaseDir(baseDir: string) {
   return path.join(getFontDirByBaseDir(baseDir), LXGW_WENKAI_FILE_NAME)
 }
 
-// Schema 默认值拿不到 ctx.baseDir，这里只给 Koishi Console 展示一个 cwd fallback。
+// Schema 默认值拿不到 ctx.baseDir，字体路径这里只给 Koishi Console 展示一个 cwd fallback。
 export const DEFAULT_LXGW_WENKAI_PATH = getLxgwWenKaiPathByBaseDir(process.cwd())
+
+export function getSharedAssetRootByBaseDir(baseDir: string, assetRootPath = DEFAULT_ASSET_ROOT_PATH) {
+  const root = assetRootPath?.trim() || DEFAULT_ASSET_ROOT_PATH
+  return path.resolve(baseDir, root)
+}
+
+export function getSharedAssetPathByBaseDir(baseDir: string, assetRootPath: string | undefined, relativeParts: readonly string[]) {
+  return path.join(getSharedAssetRootByBaseDir(baseDir, assetRootPath), ...relativeParts)
+}
+
+export function getSharedPortalDirByBaseDir(baseDir: string, assetRootPath: string | undefined) {
+  return getSharedAssetPathByBaseDir(baseDir, assetRootPath, ['image', 'portal'])
+}
+
+function getBundledAssetPath(relativeParts: readonly string[]) {
+  return path.resolve(__dirname, '../assets', ...relativeParts)
+}
+
+async function copyBundledAssetIfMissing(
+  ctx: Context,
+  config: Config,
+  asset: { source: readonly string[]; target: readonly string[] },
+) {
+  const sourcePath = getBundledAssetPath(asset.source)
+  const targetPath = getSharedAssetPathByBaseDir(ctx.baseDir, config.assetRootPath, asset.target)
+
+  await fs.mkdir(path.dirname(targetPath), { recursive: true })
+  if (existsSync(targetPath)) {
+    logInfo(ctx, config, '', `共享资源已存在，跳过复制: ${targetPath}`)
+    return targetPath
+  }
+
+  await fs.copyFile(sourcePath, targetPath)
+  logInfo(ctx, config, `📦 已复制内置资源到 Koishi 数据目录: ${targetPath}`)
+  return targetPath
+}
+
+export async function ensureSharedAssets(ctx: Context, config: Config) {
+  for (const asset of Object.values(SHARED_ASSET_FILES)) {
+    await copyBundledAssetIfMissing(ctx, config, asset)
+  }
+}
 
 export class FontConfigError extends Error {
   constructor(message: string) {
@@ -101,10 +188,6 @@ function verifyFontBuffer(buffer: Buffer, expected: FontIntegrity): boolean {
     && hashes.sha1 === expected.sha1
     && hashes.sha256 === expected.sha256
     && hashes.sha512 === expected.sha512
-}
-
-function getCrossPlatformBasename(filePath: string): string {
-  return filePath.split(/[\\/]/).filter(Boolean).pop() || filePath
 }
 
 export function resolveRuntimeFontPath(ctx: Context, filePath: string, renderer: FontRenderer): string {
@@ -323,8 +406,6 @@ export async function ensureRuntimeFonts(ctx: Context, config: Config): Promise<
 // 光翼映射管理器
 // ============================================================
 
-const WING_MAP_FILE = path.resolve(__dirname, '../assets/wingTagMap.json')
-
 export class WingMapManager {
   private wingMap: WingMapItem[] = [];
   private readonly wingMapPath: string;
@@ -332,10 +413,10 @@ export class WingMapManager {
   private spiritNameMap: Map<string, string> = new Map();
   private readonly xmlPath: string;
 
-  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string, private config: Config) {
-    this.wingMapPath = WING_MAP_FILE;
+  constructor(private ctx: Context, private wyWingMapUrl: string, private config: Config) {
+    this.wingMapPath = getSharedAssetPathByBaseDir(ctx.baseDir, config.assetRootPath, SHARED_ASSET_FILES.wingMapPath.target);
     this.fallbackMap = [...WingTagMap, ...ExtraWingTagMap];
-    this.xmlPath = skyAppXmlPath;
+    this.xmlPath = getSharedAssetPathByBaseDir(ctx.baseDir, config.assetRootPath, SHARED_ASSET_FILES.skyAppXmlFilePath.target);
   }
 
   async initialize(): Promise<void> {
@@ -418,6 +499,7 @@ export class WingMapManager {
         throw new Error('Invalid data format from remote URL.');
       }
 
+      await fs.mkdir(path.dirname(this.wingMapPath), { recursive: true })
       await fs.writeFile(this.wingMapPath, JSON.stringify(response, null, 2));
       this.wingMap = [...response, ...ExtraWingTagMap];
       logInfo(this.ctx, this.config, `✨ 光翼映射表刷新成功：远程 ${response.length} 个，合并后 ${this.wingMap.length} 个`)

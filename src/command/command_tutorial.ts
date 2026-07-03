@@ -1,8 +1,8 @@
 import { Context, h } from 'koishi'
 import type { Config } from '../config'
 import fs from 'fs'
-import path from 'path'
 import { logInfo } from '../logger'
+import { getSharedAssetPathByBaseDir, SHARED_ASSET_FILES } from '../utils'
 
 export function registerTutorialCommand(ctx: Context, config: Config) {
   ctx.command(config.tutorialCommandName)
@@ -10,7 +10,7 @@ export function registerTutorialCommand(ctx: Context, config: Config) {
     .alias('awa_tutorial_wing')
     .action(async ({ session }) => {
       try {
-        const tutorialImagePath = config.tutorialImagePath || path.resolve(__dirname, '../../assets/tutorial.jpg')
+        const tutorialImagePath = getSharedAssetPathByBaseDir(ctx.baseDir, config.assetRootPath, SHARED_ASSET_FILES.tutorialImagePath.target)
 
         if (!fs.existsSync(tutorialImagePath)) {
           return '教程图片不存在，请检查配置路径'

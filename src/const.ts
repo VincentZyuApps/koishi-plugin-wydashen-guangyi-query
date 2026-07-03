@@ -4,7 +4,7 @@ export const categoryOrder = [
 
 // ============================================================
 // 🗺️📌 光翼映射表 (from https://s.166.net/config/ds_yy_02/ma75_wing_wings.json)
-// 兜底数据，会被 assets/wingTagMap.json 运行时缓存覆盖
+// 兜底数据，会被 data/assets/wydashen-guangyi-query/json/wingTagMap.json 运行时缓存覆盖
 // ============================================================
 
 // 🤖 该数组由 scripts/sync_wing_map.py 自动生成，请勿手动修改

@@ -3,8 +3,14 @@ import {} from 'koishi-plugin-puppeteer'
 import type { Config } from '../config'
 import { logInfo } from '../logger'
 import { renderWingImage } from '../gen/gen_image_pptr'
-import { isFontConfigError, resolveRuntimeFontPath, type WingMapManager } from '../utils'
-import path from 'path'
+import {
+  getSharedAssetPathByBaseDir,
+  getSharedPortalDirByBaseDir,
+  isFontConfigError,
+  resolveRuntimeFontPath,
+  SHARED_ASSET_FILES,
+  type WingMapManager,
+} from '../utils'
 import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
 
 export function registerPptrCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
@@ -72,11 +78,12 @@ export function registerPptrCommand(ctx: Context, config: Config, wingMapManager
           }
         }
 
-        const portalIconsPathStr = path.resolve(__dirname, '../../assets/portal');
+        const backgroundImagePath = getSharedAssetPathByBaseDir(ctx.baseDir, config.assetRootPath, SHARED_ASSET_FILES.backgroundImagePath.target)
+        const portalIconsPathStr = getSharedPortalDirByBaseDir(ctx.baseDir, config.assetRootPath)
 
         const screenshot = await renderWingImage(
           ctx, userId, wingData.wing_buffs, wingMapManager.getWingMap(),
-          config.backgroundImagePath, wingMapManager,
+          backgroundImagePath, wingMapManager,
           config.separateByCategory, config.containerWidth, config.viewportWidth,
           config.imageType, config.screenshotQuality,
           config.puppeteerShowPortalIcons, portalIconsPathStr,

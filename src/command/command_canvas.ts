@@ -2,8 +2,7 @@ import { Context, h } from 'koishi'
 import { renderWingCanvas } from '../gen/gen_image_canvas'
 import type { Config } from '../config'
 import { logInfo } from '../logger'
-import path from 'path'
-import { isFontConfigError, resolveRuntimeFontPath, type WingMapManager } from '../utils'
+import { getSharedPortalDirByBaseDir, isFontConfigError, resolveRuntimeFontPath, type WingMapManager } from '../utils'
 import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
@@ -68,7 +67,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
           }
         }
 
-        const portalIconsPathStr = path.resolve(__dirname, '../../assets/portal')
+        const portalIconsPathStr = getSharedPortalDirByBaseDir(ctx.baseDir, config.assetRootPath)
 
         const buf = await renderWingCanvas(
           userId,
