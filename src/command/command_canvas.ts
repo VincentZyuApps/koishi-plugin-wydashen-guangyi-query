@@ -1,8 +1,9 @@
 import { Context, h } from 'koishi'
 import { renderWingCanvas } from '../gen/gen_image_canvas'
 import type { Config } from '../config'
+import { logInfo } from '../logger'
 import path from 'path'
-import type { WingMapManager } from '../utils'
+import { isFontConfigError, resolveRuntimeFontPath, type WingMapManager } from '../utils'
 import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
@@ -22,7 +23,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
         const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
 
-        ctx.logger.debug(`[Canvas] Querying wing data from: ${apiUrl}`)
+        logInfo(ctx, config, '', `Canvas 正在请求光翼数据: ${apiUrl}`)
 
         const apiStartTime = Date.now()
         const response = await ctx.http.get(apiUrl)
@@ -42,7 +43,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         try {
           wingData = JSON.parse(responseData.result)
         } catch (e) {
-          ctx.logger.error(`[Canvas] Failed to parse wing data: ${e}`)
+          logInfo(ctx, config, `❌ Canvas 光翼数据解析失败: ${e}`)
           await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
           return
         }
@@ -52,7 +53,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
           return
         }
 
-        ctx.logger.debug(`[Canvas] Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+        logInfo(ctx, config, '', `Canvas 已获取光翼数据: userId=${userId}, count=${wingData.wing_buffs.length}`)
 
         const apiElapsed = Date.now() - apiStartTime
         const queryTime = new Date()
@@ -62,8 +63,8 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
             .filter((w: any) => w.name.startsWith('s_'))
             .filter((w: any) => !wingMapManager.getSpiritName(w.name))
           if (unknownSpirits.length > 0) {
-            ctx.logger.warn(`🔍❓ [Canvas] userId ${userId} 有 ${unknownSpirits.length} 个未知先祖光翼:`)
-            unknownSpirits.forEach((w: any, idx: number) => ctx.logger.warn(`  - 第 ${idx + 1} 个光翼 (idx:${idx}): ${w.name} | collected: ${w.collected} | deposited: ${w.deposited}`))
+            logInfo(ctx, config, '', `🔍❓ Canvas userId ${userId} 有 ${unknownSpirits.length} 个未知先祖光翼`)
+            unknownSpirits.forEach((w: any, idx: number) => logInfo(ctx, config, '', `📍 第 ${idx + 1} 个光翼 (idx:${idx}): ${w.name} | collected: ${w.collected} | deposited: ${w.deposited}`))
           }
         }
 
@@ -81,15 +82,16 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
             separateByCategory: config.separateByCategory,
             showPortalIcons: config.canvasShowPortalIcons,
             portalIconsPath: portalIconsPathStr,
-            fontPath: config.canvasUseCustomFont ? config.canvasFontPath : '',
+            fontPath: config.canvasUseCustomFont ? resolveRuntimeFontPath(ctx, config.canvasFontPath, 'Canvas') : '',
             emojiFontPath: config.canvasEmojiFontPath,
             imageType: config.canvasImageType as 'png' | 'jpeg',
             quality: config.canvasQuality,
+            onInfo: (message) => logInfo(ctx, config, message),
           }
         )
 
         const elapsed = Date.now() - startTime
-        ctx.logger.info(`🎨✅ [Canvas] 渲染完成 ✨: ${elapsed}ms ⏱️ | userId: ${userId} 👤`)
+        logInfo(ctx, config, `🎨✅ Canvas 渲染完成: ${elapsed}ms | userId=${userId}`)
 
         const modeText = config.canvasDarkMode ? 'dark' : 'light'
         let msg = `${h.quote(session.messageId)}${h.image(buf, `image/${config.canvasImageType}`)}`
@@ -103,17 +105,25 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         if (config.enableQQMarkdown && (session.platform === 'qq' || session.platform === 'qqguild')) {
           const md = buildQueryMarkdown(apiElapsed, userId, queryTime)
           const kb = buildQueryKeyboard(config, userId, config.qqMarkdownKeyboardJson)
-          await sendQQMarkdown(session, md, kb)
+          await sendQQMarkdown(ctx, config, session, md, kb)
         }
       } catch (error) {
-        ctx.logger.error(`[Canvas] Error querying wings: ${error}`)
+        const message = error instanceof Error ? error.message : String(error)
 
-        if (error instanceof Error && error.message.includes('404')) {
+        if (isFontConfigError(error)) {
+          logInfo(ctx, config, message)
+          await session.send(`${h.quote(session.messageId)}${message}`)
+          return
+        }
+
+        logInfo(ctx, config, `❌ Canvas 查询光翼失败: ${message}`)
+
+        if (message.includes('404')) {
           await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`)
           return
         }
 
-        await session.send(`${h.quote(session.messageId)}查询失败: ${error instanceof Error ? error.message : String(error)}`)
+        await session.send(`${h.quote(session.messageId)}查询失败: ${message}`)
       } finally {
         await session.bot.deleteMessage(session.channelId, waitTipMsgIdArr[0])
       }

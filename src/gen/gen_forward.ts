@@ -8,7 +8,8 @@ export function generateWingForward(
   roleId: string,
   wingBuffs: WingData[],
   wingTagMap: readonly WingMapItem[],
-  wingMapManager?: any
+  wingMapManager?: any,
+  onMessageBlockDebug?: (preview: string) => void,
 ): string {
   // 处理光翼数据
   const processedWings = processWingData(wingBuffs, wingTagMap)
@@ -89,13 +90,6 @@ export function generateWingForward(
   let categoryIndex = 1
   let msgBlockCnt = 0
   
-  // 打印所有的 category 到控制台
-  console.log('所有分类 (All Categories):');
-  for (const [category, wings] of sortedCategories) {
-    console.log(`  ${category} - ${wings.length}个光翼`);
-  }
-  console.log('---');
-  
   for (const [category, wings] of sortedCategories) {
     const categoryCollected = wings.filter(w => w.collected).length
     const categoryTotal = wings.length
@@ -152,7 +146,7 @@ export function generateWingForward(
         authorName,
         catrgoryOverview + batchContent
       )
-    //   console.log(`这个messageBlock的信息: \n${catrgoryOverview + batchContent}`)
+      onMessageBlockDebug?.((catrgoryOverview + batchContent).slice(0, 100))
       msgBlockCnt++;
     //   if ( msgBlockCnt >=18 ) break;
     }
@@ -182,4 +176,3 @@ export function generateWingForward(
   // 返回完整的合并转发消息
   return `<message forward>\n${messages}\n</message>`
 }
-

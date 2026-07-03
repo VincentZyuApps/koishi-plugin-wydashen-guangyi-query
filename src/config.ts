@@ -5,6 +5,7 @@ import { Schema } from 'koishi'
 import { categoryOrder } from './const'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq_markdown'
 import { IMAGE_TYPES } from './types'
+import { DEFAULT_LXGW_WENKAI_PATH } from './utils'
 
 export interface Config {
   // ----- ⚙️ 后端设置 -----
@@ -36,8 +37,8 @@ export interface Config {
   viewportWidth: number;
   imageType: string;
   screenshotQuality: number;
-  puppeteerFontPath: string;
   puppeteerUseCustomFont: boolean;
+  puppeteerFontPath: string;
   puppeteerShowPortalIcons: boolean;
   puppeteerShowRenderInfo: boolean;
 
@@ -48,8 +49,8 @@ export interface Config {
   canvasDarkMode: boolean;
   canvasWidth: number;
   canvasScale: number;
-  canvasFontPath: string;
   canvasUseCustomFont: boolean;
+  canvasFontPath: string;
   canvasEmojiFontPath: string;
   canvasShowPortalIcons: boolean;
   canvasImageType: string;
@@ -155,13 +156,13 @@ export const Config: Schema<Config> = Schema.intersect([
       .min(0).max(100).step(1)
       .default(80)
       .description('📏 Puppeteer 截图质量 (0-100)。<br><em>(对于png格式 该选项无效)</em>'),
-    puppeteerFontPath: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .default(path.resolve(__dirname, '../assets/fonts/LXGWWenKaiMono-Regular.ttf'))
-      .description('🔤 Puppeteer: 中文字体文件路径 (绝对路径)'),
     puppeteerUseCustomFont: Schema.boolean()
       .default(true)
-      .description('🔤 Puppeteer: 是否使用自定义字体，关闭则使用系统默认字体'),
+      .description('🔤 Puppeteer: 是否使用自定义字体<br><em>开启后必须保证下方字体路径可用，否则会直接报错；关闭后忽略下方路径并使用系统默认字体</em>'),
+    puppeteerFontPath: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .default(DEFAULT_LXGW_WENKAI_PATH)
+      .description('🔤 Puppeteer: 中文字体文件路径 (绝对路径)<br><em>仅在开启自定义字体时生效；默认运行时优先使用 ctx.baseDir/data/fonts/LXGWWenKaiMono-Regular.ttf，缺失时会先尝试 Gitee，再尝试 GitHub 下载并校验大小与 hash。若路径为空、文件不存在或读取失败，会直接报错</em>'),
     puppeteerShowPortalIcons: Schema.boolean()
       .default(true)
       .description('🚪 Puppeteer: 是否显示地图传送门图标'),
@@ -189,13 +190,13 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(2)
       .min(0.5).max(10).step(0.1)
       .description('🔍 Canvas: 内部渲染缩放倍率（值越大越清晰，但耗时和图片体积也会增加）'),
-    canvasFontPath: Schema.string()
-      .role('textarea', { rows: [2, 4] })
-      .default(path.resolve(__dirname, '../assets/fonts/LXGWWenKaiMono-Regular.ttf'))
-      .description('🔤 Canvas: 中文字体文件路径 (绝对路径)'),
     canvasUseCustomFont: Schema.boolean()
       .default(true)
-      .description('🔤 Canvas: 是否使用自定义字体，关闭则使用系统默认字体'),
+      .description('🔤 Canvas: 是否使用自定义字体<br><em>开启后必须保证下方字体路径可用，否则会直接报错；关闭后忽略下方路径并使用系统默认字体</em>'),
+    canvasFontPath: Schema.string()
+      .role('textarea', { rows: [2, 4] })
+      .default(DEFAULT_LXGW_WENKAI_PATH)
+      .description('🔤 Canvas: 中文字体文件路径 (绝对路径)<br><em>仅在开启自定义字体时生效；默认运行时优先使用 ctx.baseDir/data/fonts/LXGWWenKaiMono-Regular.ttf，缺失时会先尝试 Gitee，再尝试 GitHub 下载并校验大小与 hash。若路径为空、文件不存在或注册失败，会直接报错</em>'),
     canvasEmojiFontPath: Schema.string()
       .role('textarea', { rows: [2, 4] })
       .default('')

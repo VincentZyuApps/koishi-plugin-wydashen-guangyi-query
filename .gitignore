@@ -20,6 +20,3 @@ tsconfig.tsbuildinfo
 # 🐍 Python bytecode cache
 __pycache__/
 *.pyc
-
-assets/fonts/*
-!assets/fonts/.gitkeep

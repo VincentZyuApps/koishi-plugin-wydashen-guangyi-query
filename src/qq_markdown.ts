@@ -1,4 +1,6 @@
-import { h } from 'koishi'
+import { h, type Context } from 'koishi'
+import type { Config } from './config'
+import { logInfo } from './logger'
 
 export const DEFAULT_KEYBOARD_ROWS = {
   rows: [
@@ -51,6 +53,8 @@ export function buildQueryKeyboard(
 }
 
 export async function sendQQMarkdown(
+  ctx: Context,
+  config: Config,
   session: any,
   markdown: string,
   keyboard: object,
@@ -85,8 +89,8 @@ export async function sendQQMarkdown(
 
       await session.bot.internal.sendMessage(session.channelId, payload)
     }
-  } catch (e) {
-    console.warn('⚠️💬 [QQ Markdown] 发送失败, 不影响图片:', e?.message || e)
+  } catch (error) {
+    logInfo(ctx, config, `⚠️ QQ Markdown 发送失败，不影响图片主流程：${error instanceof Error ? error.message : String(error)}`)
   }
 }
 

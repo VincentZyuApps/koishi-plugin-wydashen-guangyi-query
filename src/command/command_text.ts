@@ -1,6 +1,7 @@
 import { Context, h } from 'koishi'
 import type { Config } from '../config'
 import { generateWingText } from '../gen/gen_text'
+import { logInfo } from '../logger'
 import type { WingMapManager } from '../utils'
 
 export function registerTextCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
@@ -19,7 +20,7 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
         const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
         const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
 
-        ctx.logger.debug(`Querying wing data from: ${apiUrl}`)
+        logInfo(ctx, config, '', `文字模式正在请求光翼数据: ${apiUrl}`)
 
         const response = await ctx.http.get(apiUrl)
 
@@ -38,7 +39,7 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
         try {
           wingData = JSON.parse(responseData.result)
         } catch (e) {
-          ctx.logger.error(`Failed to parse wing data: ${e}`)
+          logInfo(ctx, config, `❌ 文字模式光翼数据解析失败: ${e}`)
           await session.send(`${h.quote(session.messageId)}光翼数据解析失败`)
           return;
         }
@@ -48,14 +49,14 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
           return;
         }
 
-        ctx.logger.debug(`Retrieved ${wingData.wing_buffs.length} wings for role ${userId}`)
+        logInfo(ctx, config, '', `文字模式已获取光翼数据: userId=${userId}, count=${wingData.wing_buffs.length}`)
 
         const textResult = generateWingText(userId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
 
         await session.send(`${h.quote(session.messageId)}${textResult.slice(0, config.textMaxLength)}`);
         return;
       } catch (error) {
-        ctx.logger.error(`Error querying wings: ${error}`)
+        logInfo(ctx, config, `❌ 文字模式查询光翼失败: ${error}`)
 
         if (error instanceof Error && error.message.includes('404')) {
           await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);

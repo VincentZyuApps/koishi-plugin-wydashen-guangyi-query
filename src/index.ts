@@ -1,7 +1,8 @@
 import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 
-import { WingMapManager, ensureBundledFonts } from './utils'
+import { logInfo } from './logger'
+import { WingMapManager, ensureRuntimeFonts } from './utils'
 import { registerRefreshCommand } from './command/command_refresh'
 import { registerPptrCommand } from './command/command_pptr'
 import { registerTextCommand } from './command/command_text'
@@ -21,13 +22,13 @@ export const inject = {
 }
 
 export function apply(ctx: Context, config: Config) {
-  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath, config.verboseConsoleLog)
+  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath, config)
 
   ctx.on('ready', async () => {
     try {
-      await ensureBundledFonts(ctx)
+      await ensureRuntimeFonts(ctx, config)
     } catch (error) {
-      ctx.logger.warn(`[${name}] 自动下载字体失败，将继续使用当前配置。错误: ${error}`)
+      logInfo(ctx, config, `⚠️ 自动下载字体失败，将继续使用当前配置：${error instanceof Error ? error.message : String(error)}`)
     }
     await wingMapManager.initialize()
   })
