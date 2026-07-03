@@ -3,7 +3,7 @@ import { renderWingCanvas } from '../gen/gen_image_canvas'
 import type { Config } from '../config'
 import { logInfo } from '../logger'
 import { getSharedPortalDirByBaseDir, isFontConfigError, resolveRuntimeFontPath, type WingMapManager } from '../utils'
-import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
+import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
   ctx.command(config.canvasCommandName + ' <userId:string>')

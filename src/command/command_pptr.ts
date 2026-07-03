@@ -11,7 +11,7 @@ import {
   SHARED_ASSET_FILES,
   type WingMapManager,
 } from '../utils'
-import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq_markdown'
+import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq'
 
 export function registerPptrCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
   ctx.command(config.pptrCommandName + ' <userId:string>')
