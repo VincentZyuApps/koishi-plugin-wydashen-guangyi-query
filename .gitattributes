@@ -9,3 +9,7 @@
 *.otf -text
 *.woff -text
 *.woff2 -text
+
+# GitHub Linguist
+src/const.ts linguist-detectable=false
+assets/json/*.json linguist-language=JSON linguist-detectable=true
