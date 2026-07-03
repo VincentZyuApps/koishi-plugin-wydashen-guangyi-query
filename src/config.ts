@@ -1,7 +1,7 @@
 import { Schema } from 'koishi'
 
 import { categoryOrder } from './const'
-import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq_markdown'
+import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
 import { IMAGE_TYPES } from './types'
 import { DEFAULT_ASSET_ROOT_PATH, DEFAULT_LXGW_WENKAI_PATH } from './utils'
 
