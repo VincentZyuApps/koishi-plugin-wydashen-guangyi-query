@@ -1,4 +1,5 @@
 import { existsSync } from 'fs'
+import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
 import { promisify } from 'util'
@@ -7,11 +8,121 @@ import { Context } from 'koishi'
 import { parseString } from 'xml2js'
 
 import { categoryOrder } from './const'
+import type { Config } from './config'
+import { logInfo } from './logger'
 import { WingTagMap, ExtraWingTagMap } from './types'
 
-const PLUGIN_NAME = 'wydashen-guangyi-query'
-const LXGW_FONT_FILE = 'LXGWWenKaiMono-Regular.ttf'
-const LXGW_FONT_URL = `http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/${LXGW_FONT_FILE}`
+export const LXGW_WENKAI_FILE_NAME = 'LXGWWenKaiMono-Regular.ttf'
+export type FontRenderer = 'Puppeteer' | 'Canvas'
+
+const GITEE_RELEASE_BASE = 'https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts'
+const GITHUB_RELEASE_BASE = 'https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts'
+
+interface FontIntegrity {
+  size: number
+  md5: string
+  sha1: string
+  sha256: string
+  sha512: string
+}
+
+const FONT_INTEGRITY: Record<string, FontIntegrity> = {
+  [LXGW_WENKAI_FILE_NAME]: {
+    size: 24755236,
+    md5: '90e75a25cca0e8868977b880352c6a53',
+    sha1: '7f018ad4a181e4d2df4f972f357e612885d6c24a',
+    sha256: 'ee9faa6479c5b2434f9bceca8e2e7b643f699f4f3d067aac9609261e07c6be61',
+    sha512: '793dc4357d311dba539c50b0ae38ff247af066f141ffea54ff0cc51e274453671e736989cee4998fd89211035ecfe52ad38aa828ba7f1739bcf107b94a023be5',
+  },
+}
+
+const FONT_DOWNLOAD_URLS: Record<string, { source: string; url: string }[]> = {
+  [LXGW_WENKAI_FILE_NAME]: [
+    { source: 'Gitee', url: `${GITEE_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
+    { source: 'GitHub', url: `${GITHUB_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
+  ],
+}
+
+export function getFontDirByBaseDir(baseDir: string) {
+  return path.join(baseDir, 'data', 'fonts')
+}
+
+export function getLxgwWenKaiPathByBaseDir(baseDir: string) {
+  return path.join(getFontDirByBaseDir(baseDir), LXGW_WENKAI_FILE_NAME)
+}
+
+// Schema 默认值拿不到 ctx.baseDir，这里只给 Koishi Console 展示一个 cwd fallback。
+export const DEFAULT_LXGW_WENKAI_PATH = getLxgwWenKaiPathByBaseDir(process.cwd())
+
+export class FontConfigError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FontConfigError'
+  }
+}
+
+export function isFontConfigError(error: unknown): error is FontConfigError {
+  return error instanceof FontConfigError
+}
+
+export function createFontLoadError(
+  renderer: FontRenderer,
+  fontPath: string,
+  reason: string,
+  fontLabel = '字体',
+) {
+  return new FontConfigError(`❌ ${renderer} 加载${fontLabel}失败: ${fontPath}。${reason}，请检查字体配置。`)
+}
+
+function calculateFontHashes(buffer: Buffer) {
+  return {
+    md5: createHash('md5').update(buffer).digest('hex'),
+    sha1: createHash('sha1').update(buffer).digest('hex'),
+    sha256: createHash('sha256').update(buffer).digest('hex'),
+    sha512: createHash('sha512').update(buffer).digest('hex'),
+  }
+}
+
+async function verifyFontIntegrity(filePath: string, expected: FontIntegrity): Promise<boolean> {
+  if (!existsSync(filePath)) return false
+  const buffer = await fs.readFile(filePath)
+  if (buffer.length !== expected.size) return false
+  const hashes = calculateFontHashes(buffer)
+  return hashes.md5 === expected.md5
+    && hashes.sha1 === expected.sha1
+    && hashes.sha256 === expected.sha256
+    && hashes.sha512 === expected.sha512
+}
+
+function verifyFontBuffer(buffer: Buffer, expected: FontIntegrity): boolean {
+  if (buffer.length !== expected.size) return false
+  const hashes = calculateFontHashes(buffer)
+  return hashes.md5 === expected.md5
+    && hashes.sha1 === expected.sha1
+    && hashes.sha256 === expected.sha256
+    && hashes.sha512 === expected.sha512
+}
+
+function getCrossPlatformBasename(filePath: string): string {
+  return filePath.split(/[\\/]/).filter(Boolean).pop() || filePath
+}
+
+export function resolveRuntimeFontPath(ctx: Context, filePath: string, renderer: FontRenderer): string {
+  const runtimePath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+  const resolvedPath = filePath === DEFAULT_LXGW_WENKAI_PATH || filePath === runtimePath
+    ? runtimePath
+    : filePath
+
+  if (!resolvedPath) {
+    throw new FontConfigError(`❌ ${renderer} 自定义字体路径为空。已开启自定义字体，请填写有效的字体文件绝对路径，或关闭自定义字体。`)
+  }
+
+  if (!existsSync(resolvedPath)) {
+    throw createFontLoadError(renderer, resolvedPath, '文件不存在')
+  }
+
+  return resolvedPath
+}
 
 // ============================================================
 // 📄🔍 XML 解析工具
@@ -158,22 +269,54 @@ export function calcWingStats(wings: WingDisplayData[]) {
   return { total, collected, deposited, notRedeemed }
 }
 
-export async function ensureBundledFonts(ctx: Context): Promise<void> {
-  const fontsDir = path.resolve(__dirname, '../assets/fonts')
-  const lxgwFontPath = path.join(fontsDir, LXGW_FONT_FILE)
+export async function ensureRuntimeFonts(ctx: Context, config: Config): Promise<void> {
+  const fontDir = getFontDirByBaseDir(ctx.baseDir)
+  const fontPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+  const expected = FONT_INTEGRITY[LXGW_WENKAI_FILE_NAME]
 
-  if (existsSync(lxgwFontPath)) return
+  logInfo(ctx, config, '', `开始检查默认字体: ${fontPath}`)
+  if (await verifyFontIntegrity(fontPath, expected)) {
+    logInfo(ctx, config, '', `字体文件已存在且校验通过，跳过下载: ${fontPath}`)
+    return
+  }
 
-  await fs.mkdir(fontsDir, { recursive: true })
-  ctx.logger.info(`[${PLUGIN_NAME}] 缺少字体文件，开始下载 ${LXGW_FONT_FILE}...`)
+  await fs.mkdir(fontDir, { recursive: true })
 
-  const response = await ctx.http.get(LXGW_FONT_URL, {
-    responseType: 'arraybuffer',
-    timeout: 60000,
-  })
+  if (existsSync(fontPath)) {
+    logInfo(ctx, config, `⚠️ 默认字体校验失败，将重新下载: ${fontPath}`)
+  } else {
+    logInfo(ctx, config, `📥 缺少默认字体，开始下载 ${LXGW_WENKAI_FILE_NAME}...`)
+  }
 
-  await fs.writeFile(lxgwFontPath, Buffer.from(response))
-  ctx.logger.info(`[${PLUGIN_NAME}] 字体文件下载完成: ${LXGW_FONT_FILE} ✓`)
+  let lastError: unknown = null
+  for (const candidate of FONT_DOWNLOAD_URLS[LXGW_WENKAI_FILE_NAME]) {
+    try {
+      logInfo(ctx, config, '', `下载字体中: ${LXGW_WENKAI_FILE_NAME} (${candidate.source})`)
+      const response = await ctx.http.get(candidate.url, {
+        responseType: 'arraybuffer',
+        timeout: 60000,
+      })
+      const buffer = Buffer.from(response)
+
+      if (!verifyFontBuffer(buffer, expected)) {
+        throw new Error(`字体校验失败: ${LXGW_WENKAI_FILE_NAME}`)
+      }
+
+      await fs.writeFile(fontPath, buffer)
+
+      if (!(await verifyFontIntegrity(fontPath, expected))) {
+        throw new Error(`字体写入后校验失败: ${LXGW_WENKAI_FILE_NAME}`)
+      }
+
+      logInfo(ctx, config, `✅ 字体文件下载完成并校验通过: ${fontPath}`)
+      return
+    } catch (error) {
+      lastError = error
+      logInfo(ctx, config, `⚠️ ${candidate.source} 下载失败，准备尝试下一个源：${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  throw new Error(`字体文件下载失败，Gitee / GitHub 均不可用或校验失败: ${lastError instanceof Error ? lastError.message : String(lastError)}`)
 }
 
 // ============================================================
@@ -189,59 +332,59 @@ export class WingMapManager {
   private spiritNameMap: Map<string, string> = new Map();
   private readonly xmlPath: string;
 
-  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string, private verboseLog: boolean = false) {
+  constructor(private ctx: Context, private wyWingMapUrl: string, private skyAppXmlPath: string, private config: Config) {
     this.wingMapPath = WING_MAP_FILE;
     this.fallbackMap = [...WingTagMap, ...ExtraWingTagMap];
     this.xmlPath = skyAppXmlPath;
   }
 
   async initialize(): Promise<void> {
-    this.ctx.logger.info('🚀 初始化光翼映射管理器 Initializing WingMapManager...');
+    logInfo(this.ctx, this.config, '🚀 初始化光翼映射管理器')
 
     try {
-      this.ctx.logger.info('📖 正在加载Sky App XML文件...');
+      logInfo(this.ctx, this.config, '', '📖 正在加载 Sky App XML 文件')
       const xmlData = await parseXmlFile(this.xmlPath);
       this.spiritNameMap = extractSpiritNames(xmlData);
-      this.ctx.logger.info(`✅ 成功加载 ${this.spiritNameMap.size} 个先祖名称映射`);
+      logInfo(this.ctx, this.config, `✅ 成功加载 ${this.spiritNameMap.size} 个先祖名称映射`)
     } catch (error) {
-      this.ctx.logger.error('❌ 加载Sky App XML文件失败:', error);
+      logInfo(this.ctx, this.config, `❌ 加载 Sky App XML 文件失败：${error instanceof Error ? error.message : String(error)}`)
     }
 
     try {
       await fs.access(this.wingMapPath);
-      this.ctx.logger.info('📂 发现本地光翼映射文件 Local wing map file found, loading...');
+      logInfo(this.ctx, this.config, '', '📂 发现本地光翼映射文件，准备加载')
       await this.loadWingMap();
 
-      this.ctx.logger.info('🔄 检查远程更新 Checking for remote updates...');
+      logInfo(this.ctx, this.config, '', '🔄 正在检查远程更新')
       const refreshResult = await this.refreshWingMap();
 
       if (refreshResult.startsWith('❌') && this.wingMap.length > 0) {
-        this.ctx.logger.warn('⚠️ 远程更新失败，继续使用本地缓存 Remote update failed, using local cache');
+        logInfo(this.ctx, this.config, '⚠️ 远程更新失败，继续使用本地缓存')
       }
     } catch (error) {
-      this.ctx.logger.info('🌐 本地光翼映射文件不存在 Local file not found, fetching from remote...');
+      logInfo(this.ctx, this.config, '', '🌐 本地光翼映射文件不存在，准备远程拉取')
       await this.refreshWingMap();
 
       if (this.wingMap.length === 0) {
-        this.ctx.logger.warn('🔄 远程获取失败，使用内置映射表 Remote fetch failed, using fallback wing map');
+        logInfo(this.ctx, this.config, '🔄 远程获取失败，改用内置映射表')
         this.wingMap = [...this.fallbackMap];
       }
     }
 
-    this.ctx.logger.info(`✅ 光翼映射管理器初始化完成 WingMapManager initialized! Total wings loaded: ${this.wingMap.length}`);
+    logInfo(this.ctx, this.config, `✅ 光翼映射管理器初始化完成：共加载 ${this.wingMap.length} 个光翼`)
 
-    if (this.verboseLog) {
+    if (this.config.verboseConsoleLog) {
       const unknownSpirits = this.wingMap
         .filter(item => item.光翼名字.startsWith('s_'))
         .filter(item => !this.getSpiritName(item.光翼名字))
       if (unknownSpirits.length > 0) {
-        this.ctx.logger.warn(`🔍❓ 光翼映射表中发现 ${unknownSpirits.length} 个未知先祖光翼（不在 XML 映射中）:`)
+        logInfo(this.ctx, this.config, '', `🔍❓ 光翼映射表中发现 ${unknownSpirits.length} 个未知先祖光翼（不在 XML 映射中）`)
         unknownSpirits.forEach((item, idx) => {
           const no = idx + 1
-          this.ctx.logger.warn(`  - .\\src\\const.ts 里 WingTagMap 的第 ${no} 个 (idx:${idx}): ${item.光翼名字} | 一级标签: ${item.一级标签} | 二级标签: ${item.二级标签}`)
+          logInfo(this.ctx, this.config, '', `📍 .\\src\\const.ts 里 WingTagMap 的第 ${no} 个 (idx:${idx}): ${item.光翼名字} | 一级标签: ${item.一级标签} | 二级标签: ${item.二级标签}`)
         })
       } else {
-        this.ctx.logger.info(`✅ 光翼映射表中的先祖光翼全部有名称映射`)
+        logInfo(this.ctx, this.config, '', '✅ 光翼映射表中的先祖光翼全部有名称映射')
       }
     }
   }
@@ -252,23 +395,23 @@ export class WingMapManager {
       const localMap = JSON.parse(data);
       if (Array.isArray(localMap) && localMap.length > 0) {
         this.wingMap = [...localMap, ...ExtraWingTagMap];
-        this.ctx.logger.info(`📖 从本地文件加载成功 Loaded from local: ${localMap.length} wings, total with extra: ${this.wingMap.length}`);
+        logInfo(this.ctx, this.config, `📖 从本地文件加载成功：本地 ${localMap.length} 个，合并后 ${this.wingMap.length} 个`)
         return;
       }
     } catch (error) {
-      if (error.code !== 'ENOENT') {
-        this.ctx.logger.error('❌ 读取或解析本地光翼映射文件失败 Failed to read or parse local wing map file', error);
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        logInfo(this.ctx, this.config, `❌ 读取或解析本地光翼映射文件失败：${error instanceof Error ? error.message : String(error)}`)
       } else {
-        this.ctx.logger.warn('📭 本地光翼映射文件未找到 Local wing map file not found');
+        logInfo(this.ctx, this.config, '📭 本地光翼映射文件未找到')
       }
     }
 
-    this.ctx.logger.warn('🔄 使用内置映射表 Using fallback wing map');
+    logInfo(this.ctx, this.config, '🔄 使用内置映射表')
     this.wingMap = [...this.fallbackMap];
   }
 
   async refreshWingMap(): Promise<string> {
-    this.ctx.logger.info(`🌐 正在从远程获取最新光翼映射表 Fetching from: ${this.wyWingMapUrl}`);
+    logInfo(this.ctx, this.config, '', `🌐 正在从远程获取最新光翼映射表: ${this.wyWingMapUrl}`)
     try {
       const response = await this.ctx.http.get<WingMapItem[]>(this.wyWingMapUrl);
       if (!response || !Array.isArray(response)) {
@@ -277,15 +420,15 @@ export class WingMapManager {
 
       await fs.writeFile(this.wingMapPath, JSON.stringify(response, null, 2));
       this.wingMap = [...response, ...ExtraWingTagMap];
-      this.ctx.logger.info(`✨ 光翼映射表刷新成功 Wing map refreshed! Remote: ${response.length}, total with extra: ${this.wingMap.length}`);
-      return '✅ 光翼ID映射表刷新成功！Wing map refreshed successfully!';
+      logInfo(this.ctx, this.config, `✨ 光翼映射表刷新成功：远程 ${response.length} 个，合并后 ${this.wingMap.length} 个`)
+      return '✅ 光翼 ID 映射表刷新成功！'
     } catch (error) {
-      this.ctx.logger.error('❌ 刷新光翼映射表失败 Failed to refresh wing map:', error);
+      logInfo(this.ctx, this.config, `❌ 刷新光翼映射表失败：${error instanceof Error ? error.message : String(error)}`)
       if (this.wingMap.length === 0) {
-        this.ctx.logger.warn('🔄 刷新失败，回退到内置映射表 Refresh failed, falling back to default map');
+        logInfo(this.ctx, this.config, '🔄 刷新失败，回退到内置映射表')
         this.wingMap = [...this.fallbackMap];
       }
-      return `❌ 刷新失败 Refresh failed: ${error.message}`;
+      return `❌ 刷新失败：${error instanceof Error ? error.message : String(error)}`;
     }
   }
 

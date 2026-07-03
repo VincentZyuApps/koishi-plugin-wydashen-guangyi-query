@@ -1,7 +1,7 @@
 import { createCanvas, GlobalFonts, SKRSContext2D, Canvas, Image, loadImage } from '@napi-rs/canvas'
 import { existsSync, readFileSync } from 'fs'
 import { resolve } from 'path'
-import { processWingData, groupWingsByCategory, calcWingStats, WingDisplayData, WingData, WingMapItem } from '../utils'
+import { processWingData, groupWingsByCategory, calcWingStats, WingDisplayData, WingData, WingMapItem, createFontLoadError } from '../utils'
 
 export interface CanvasRenderOptions {
   darkMode?: boolean
@@ -14,6 +14,7 @@ export interface CanvasRenderOptions {
   emojiFontPath?: string
   imageType?: 'png' | 'jpeg'
   quality?: number
+  onInfo?: (message: string) => void
 }
 
 const themes = {
@@ -84,20 +85,26 @@ function getStatus(wing: WingDisplayData): keyof typeof statusConfig {
 
 let fontRegistered = false
 
-function registerFonts(fontPath: string, emojiFontPath?: string) {
+function registerFonts(fontPath: string, emojiFontPath?: string, onInfo?: (message: string) => void) {
   if (fontRegistered) return
-  if (existsSync(fontPath)) {
+  if (fontPath && !existsSync(fontPath)) {
+    throw createFontLoadError('Canvas', fontPath, '文件不存在')
+  }
+  if (fontPath) {
     try {
       GlobalFonts.registerFromPath(fontPath, 'LXGWWenKai')
-    } catch (e) {
-      console.warn('[canvas] Failed to register font:', e.message)
+    } catch (error) {
+      throw createFontLoadError('Canvas', fontPath, `无法注册主字体: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
-  if (emojiFontPath && existsSync(emojiFontPath)) {
+  if (emojiFontPath && !existsSync(emojiFontPath)) {
+    throw createFontLoadError('Canvas', emojiFontPath, '文件不存在', 'Emoji 字体')
+  }
+  if (emojiFontPath) {
     try {
       GlobalFonts.registerFromPath(emojiFontPath, 'Segoe UI Emoji')
-    } catch (e) {
-      console.warn('[canvas] Failed to register emoji font:', e.message)
+    } catch (error) {
+      throw createFontLoadError('Canvas', emojiFontPath, `无法注册 Emoji 字体: ${error instanceof Error ? error.message : String(error)}`, 'Emoji 字体')
     }
   }
   fontRegistered = true
@@ -242,7 +249,19 @@ function drawHeader(ctx: SKRSContext2D, t: Theme, x: number, y: number, w: numbe
   return h
 }
 
-function drawCategoryHeader(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, count: number, collected: number, portalIcon?: Image) {
+function drawCategoryHeader(
+  ctx: SKRSContext2D,
+  t: Theme,
+  dark: boolean,
+  x: number,
+  y: number,
+  w: number,
+  category: string,
+  count: number,
+  collected: number,
+  portalIcon?: Image,
+  onInfo?: (message: string) => void,
+) {
   const h = 42
   fillRoundRect(ctx, x, y, w, h, 10, t.categoryHeader)
   strokeRoundRect(ctx, x, y, w, h, 10, t.border, 1)
@@ -257,8 +276,8 @@ function drawCategoryHeader(ctx: SKRSContext2D, t: Theme, dark: boolean, x: numb
       const iconW = (portalIcon.width / portalIcon.height) * iconH
       const labelW = ctx.measureText(`🏷️ ${category}`).width
       ctx.drawImage(portalIcon, labelX + labelW + 8, y + (h - iconH) / 2, iconW, iconH)
-    } catch (e) {
-      console.warn('⚠️🖼️ [Canvas] 加载 portal 图标失败:', e)
+    } catch (error) {
+      onInfo?.(`⚠️ Canvas 分类标题右侧 portal 图标绘制失败：${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
@@ -282,7 +301,20 @@ function drawCardGrid(ctx: SKRSContext2D, wings: WingDisplayData[], t: Theme, da
   return Math.ceil(wings.length / CARDS_PER_ROW) * (CARD_H + GAP_Y) - GAP_Y
 }
 
-async function drawSection(ctx: SKRSContext2D, t: Theme, dark: boolean, x: number, y: number, w: number, category: string, wings: WingDisplayData[], showPortalIcons: boolean, portalIconsPath: string, getSpiritName: (name: string) => string | undefined): Promise<number> {
+async function drawSection(
+  ctx: SKRSContext2D,
+  t: Theme,
+  dark: boolean,
+  x: number,
+  y: number,
+  w: number,
+  category: string,
+  wings: WingDisplayData[],
+  showPortalIcons: boolean,
+  portalIconsPath: string,
+  getSpiritName: (name: string) => string | undefined,
+  onInfo?: (message: string) => void,
+): Promise<number> {
   const collected = wings.filter(w => w.collected).length
   let portalIcon: Image | undefined
 
@@ -297,7 +329,7 @@ async function drawSection(ctx: SKRSContext2D, t: Theme, dark: boolean, x: numbe
     }
   }
 
-  const headerH = drawCategoryHeader(ctx, t, dark, x, y, w, category, wings.length, collected, portalIcon)
+  const headerH = drawCategoryHeader(ctx, t, dark, x, y, w, category, wings.length, collected, portalIcon, onInfo)
   const gridH = drawCardGrid(ctx, wings, t, dark, x, y + headerH + 10, w, getSpiritName)
 
   return headerH + 10 + gridH
@@ -321,9 +353,10 @@ export async function renderWingCanvas(
     emojiFontPath = '',
     imageType = 'png',
     quality = 90,
+    onInfo,
   } = options
 
-  registerFonts(fontPath, emojiFontPath)
+  registerFonts(fontPath, emojiFontPath, onInfo)
 
   const t = darkMode ? themes.dark : themes.light
   const processedWings = processWingData(wingBuffs, wingTagMap)
@@ -374,7 +407,7 @@ export async function renderWingCanvas(
 
   if (separateByCategory) {
     for (const section of categorySections) {
-      const h = await drawSection(ctx, t, darkMode, padding, currentY, innerW, section.category, section.wings, showPortalIcons, portalIconsPath, getSpiritName)
+      const h = await drawSection(ctx, t, darkMode, padding, currentY, innerW, section.category, section.wings, showPortalIcons, portalIconsPath, getSpiritName, onInfo)
       currentY += h + 16
     }
   } else {

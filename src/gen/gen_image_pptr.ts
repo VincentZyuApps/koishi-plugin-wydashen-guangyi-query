@@ -1,6 +1,6 @@
 import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
-import { WingMapItem, processWingData, WingDisplayData, WingData } from '../utils'
+import { WingMapItem, processWingData, WingDisplayData, WingData, createFontLoadError } from '../utils'
 import { categoryOrder } from '../const'
 import fs from 'fs'
 
@@ -601,7 +601,8 @@ export async function renderWingImage(
   screenshotQuality: number = 80,
   showPortalIcons: boolean = false,
   portalIconsPath: string = '',
-  fontPath: string = ''
+  fontPath: string = '',
+  onInfo?: (message: string) => void,
 ): Promise<string> {
   const browserPage = await ctx.puppeteer.page()
   
@@ -619,15 +620,18 @@ export async function renderWingImage(
         bgBase64 = bgBuffer.toString('base64')
         // 生成随机偏移量 (0-100)，用于在背景图中随机选择竖条位置
         bgOffset = Math.floor(Math.random() * 101)
-        ctx.logger.debug(`Background image loaded, offset: ${bgOffset}%`)
       } catch (error) {
-        ctx.logger.warn(`Failed to load background image: ${error}`)
+        onInfo?.(`⚠️ Puppeteer 背景图读取失败，将回退纯色背景：${error instanceof Error ? error.message : String(error)}`)
       }
     }
 
     let fontBase64 = ''
-    if (fontPath && fs.existsSync(fontPath)) {
-      try { fontBase64 = fs.readFileSync(fontPath).toString('base64') } catch {}
+    if (fontPath) {
+      try {
+        fontBase64 = fs.readFileSync(fontPath).toString('base64')
+      } catch (error) {
+        throw createFontLoadError('Puppeteer', fontPath, `无法读取字体文件: ${error instanceof Error ? error.message : String(error)}`)
+      }
     }
 
     // 生成 HTML
@@ -673,7 +677,7 @@ export async function renderWingImage(
     
     return screenshot
   } catch (error) {
-    ctx.logger.error(`Failed to render wing image: ${error}`)
+    onInfo?.(`❌ Puppeteer 渲染图片失败：${error instanceof Error ? error.message : String(error)}`)
     throw error
   } finally {
     await browserPage.close()
