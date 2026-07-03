@@ -3,7 +3,8 @@
 同步光翼映射表
 
 从网易官方远程 URL 拉取最新的光翼 ID 映射 JSON，
-更新 src/const.ts 中 WingTagMap 的兜底数据。
+更新 src/const.ts 中 WingTagMap 的兜底数据，
+并同步写入 assets/json/wingTagMap.json 作为包内默认运行时资源。
 
 用法:
     python scripts/sync_wing_map.py
@@ -14,7 +15,9 @@ import urllib.request
 from pathlib import Path
 
 REMOTE_URL = "https://s.166.net/config/ds_yy_02/ma75_wing_wings.json"
-CONST_FILE = Path(__file__).resolve().parent.parent / "src" / "const.ts"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CONST_FILE = PROJECT_ROOT / "src" / "const.ts"
+ASSET_JSON_FILE = PROJECT_ROOT / "assets" / "json" / "wingTagMap.json"
 
 # 光翼名字前缀 → emoji
 PREFIX_EMOJI = {
@@ -174,11 +177,23 @@ def update_const_file(new_json: str) -> None:
     print(f"✅ 已更新: {CONST_FILE}")
 
 
+def update_asset_json(data: list[dict]) -> None:
+    """更新 assets/json/wingTagMap.json 包内默认资源。"""
+    ASSET_JSON_FILE.parent.mkdir(parents=True, exist_ok=True)
+    ASSET_JSON_FILE.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    print(f"✅ 已更新: {ASSET_JSON_FILE}")
+
+
 def main() -> None:
     data = fetch_remote_wing_map()
     new_json = format_ts_json(data)
     update_const_file(new_json)
-    print(f"\n🎉 同步完成！兜底 WingTagMap 现在包含 {len(data)} 条数据。")
+    update_asset_json(data)
+    print(f"\n🎉 同步完成！兜底 WingTagMap 和包内 JSON 现在包含 {len(data)} 条数据。")
 
 
 if __name__ == "__main__":

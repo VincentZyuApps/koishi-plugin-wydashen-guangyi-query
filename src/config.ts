@@ -1,11 +1,9 @@
-import path from 'path'
-
 import { Schema } from 'koishi'
 
 import { categoryOrder } from './const'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq_markdown'
 import { IMAGE_TYPES } from './types'
-import { DEFAULT_LXGW_WENKAI_PATH } from './utils'
+import { DEFAULT_ASSET_ROOT_PATH, DEFAULT_LXGW_WENKAI_PATH } from './utils'
 
 export interface Config {
   // ----- ⚙️ 后端设置 -----
@@ -13,9 +11,7 @@ export interface Config {
   wyWingMapUrl: string;
 
   // ----- 📁 路径设置 -----
-  backgroundImagePath: string;
-  tutorialImagePath: string;
-  skyAppXmlFilePath: string;
+  assetRootPath: string;
 
   // ----- 🎮 指令设置 -----
   enableImagePptrCommand: boolean;
@@ -78,18 +74,12 @@ export const Config: Schema<Config> = Schema.intersect([
   }).description('⚙️ 后端设置'),
   
   Schema.object({
-    backgroundImagePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/sky_bg.png'))
-      .description(`🖼️ 背景图片路径`),
-    tutorialImagePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/tutorial_20260614_html.png'))
-      .description(`📚 查询光翼使用方法教程图片路径`),
-    skyAppXmlFilePath: Schema.string()
-      .role('textarea', { rows: [2, 5] })
-      .default(path.resolve(__dirname, '../assets/0.16.0.xml'))
-      .description(`📄 Sky App 导出的 XML 文件路径`),
+    assetRootPath: Schema.path({
+      filters: ['directory'],
+      allowCreate: true,
+    })
+      .default(DEFAULT_ASSET_ROOT_PATH)
+      .description('📁 运行时资源目录。相对于 Koishi 根目录 ctx.baseDir；启动时会把内置 image / json / tutorial / xml 资源复制到这里'),
   }).description('📁 路径设置'),
 
   Schema.object({

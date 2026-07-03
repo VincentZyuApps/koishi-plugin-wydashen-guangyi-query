@@ -2,7 +2,7 @@ import { Context } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
 
 import { logInfo } from './logger'
-import { WingMapManager, ensureRuntimeFonts } from './utils'
+import { WingMapManager, ensureRuntimeFonts, ensureSharedAssets } from './utils'
 import { registerRefreshCommand } from './command/command_refresh'
 import { registerPptrCommand } from './command/command_pptr'
 import { registerTextCommand } from './command/command_text'
@@ -22,9 +22,15 @@ export const inject = {
 }
 
 export function apply(ctx: Context, config: Config) {
-  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config.skyAppXmlFilePath, config)
+  const wingMapManager = new WingMapManager(ctx, config.wyWingMapUrl, config)
 
   ctx.on('ready', async () => {
+    try {
+      await ensureSharedAssets(ctx, config)
+    } catch (error) {
+      logInfo(ctx, config, `⚠️ 复制内置资源到 Koishi 数据目录失败：${error instanceof Error ? error.message : String(error)}`)
+    }
+
     try {
       await ensureRuntimeFonts(ctx, config)
     } catch (error) {

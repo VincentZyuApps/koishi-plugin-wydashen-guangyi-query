@@ -47,23 +47,23 @@
 
 ### 查询光翼 \<玩家id\>
 > 返回结果
-![assets/preview/gen_image_pptr.png](assets/preview/gen_image_pptr.png)
+![doc/images/preview/gen_image_pptr.png](doc/images/preview/gen_image_pptr.png)
 
 ### 查询光翼-canvas \<玩家id\>
 > 返回结果（示例）
-![assets/preview/gen_image_canvas.png](assets/preview/gen_image_canvas.png)
+![doc/images/preview/gen_image_canvas.png](doc/images/preview/gen_image_canvas.png)
 
 ### 查询光翼-forward \<玩家id\>
 > 返回结果（示例）
-![assets/preview/gen_image_forward.png](assets/preview/gen_image_forward.png)
+![doc/images/preview/gen_image_forward.png](doc/images/preview/gen_image_forward.png)
 
 ### 获取id方法
 > 返回结果
-![assets/tutorial_20260614_html.png](assets/tutorial_20260614_html.png)
+![assets/tutorial/tutorial_20260614_html.png](assets/tutorial/tutorial_20260614_html.png)
 
 ### QQ 官方 Bot Markdown 按钮消息
 > 返回结果（示例）
-![assets/preview/qq_markdown_button.png](assets/preview/qq_markdown_button.png)
+![doc/images/preview/qq_markdown_button.png](doc/images/preview/qq_markdown_button.png)
 
 ---
 
