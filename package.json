@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wydashen-guangyi-query",
   "description": "🕊️ 通过网易大神接口查询光遇国服光翼获取情况 | 支持 Puppeteer/NAPI canvas 双引擎渲染图片 | 支持OneBot合并转发",
-  "version": "0.5.8-beta.5+20260703",
+  "version": "0.5.8-beta.6+20260703",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

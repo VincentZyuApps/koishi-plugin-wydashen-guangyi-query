@@ -218,7 +218,7 @@ export const Config: Schema<Config> = Schema.intersect([
     qqMarkdownKeyboardJson: Schema.string()
       .role('textarea', { rows: [5, 10] })
       .default(stringifyCompact(DEFAULT_KEYBOARD_ROWS))
-      .description('📋 QQ Markdown 按钮 JSON 配置<br><em>支持变量: <code>${canvasCommandName}</code> <code>${pptrCommandName}</code> <code>${tutorialCommandName}</code> <code>${userId}</code></em>'),
+      .description('📋 QQ Markdown 按钮 JSON 配置<br><em>支持变量: <code>${canvasCommandName}</code> <code>${pptrCommandName}</code> <code>${tutorialCommandName}</code> <code>${skyPlayerId}</code></em>'),
   }).description('🤖 QQ 官方 Bot 平台设置'),
 
   Schema.object({

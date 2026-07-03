@@ -6,8 +6,8 @@ export const DEFAULT_KEYBOARD_ROWS = {
   rows: [
     {
       buttons: [
-        { render_data: { label: '🎨 canvas出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${canvasCommandName} ${userId}', enter: true } },
-        { render_data: { label: '🖼️ pptr出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${pptrCommandName} ${userId}', enter: true } },
+        { render_data: { label: '🎨 canvas出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${canvasCommandName} ${skyPlayerId}', enter: true } },
+        { render_data: { label: '🖼️ pptr出图', style: 1 }, action: { type: 2, permission: { type: 2 }, data: '${pptrCommandName} ${skyPlayerId}', enter: true } },
       ],
     },
     {
@@ -19,12 +19,12 @@ export const DEFAULT_KEYBOARD_ROWS = {
   ],
 }
 
-export function buildQueryMarkdown(apiElapsed: number, userId: string, queryTime: Date): string {
+export function buildQueryMarkdown(apiElapsed: number, skyPlayerId: string, queryTime: Date): string {
   const timeStr = queryTime.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
   return [
     '# 光翼查询结果 ✨',
     '',
-    `> 国服用户游戏ID: ${userId}`,
+    `> 光遇角色ID: ${skyPlayerId}`,
     `> 查询时间: ${timeStr}`,
     `> API响应耗时: ${apiElapsed}ms`,
   ].join('\n')
@@ -32,7 +32,7 @@ export function buildQueryMarkdown(apiElapsed: number, userId: string, queryTime
 
 export function buildQueryKeyboard(
   cmds: { canvasCommandName: string; pptrCommandName: string; tutorialCommandName: string },
-  userId: string,
+  skyPlayerId: string,
   customJson?: string,
 ): object {
   let raw: string
@@ -45,7 +45,7 @@ export function buildQueryKeyboard(
     raw = raw.replace(/\$\{canvasCommandName\}/g, cmds.canvasCommandName)
     raw = raw.replace(/\$\{pptrCommandName\}/g, cmds.pptrCommandName)
     raw = raw.replace(/\$\{tutorialCommandName\}/g, cmds.tutorialCommandName)
-    raw = raw.replace(/\$\{userId\}/g, userId)
+    raw = raw.replace(/\$\{skyPlayerId\}/g, skyPlayerId)
     const parsed = JSON.parse(raw)
     if (parsed?.rows?.length) return parsed
   } catch {}

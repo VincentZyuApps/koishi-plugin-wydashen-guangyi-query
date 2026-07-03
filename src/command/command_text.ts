@@ -5,12 +5,12 @@ import { logInfo } from '../logger'
 import type { WingMapManager } from '../utils'
 
 export function registerTextCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command(config.textCommandName + ' <userId:string>')
+  ctx.command(config.textCommandName + ' <skyPlayerId:string>')
     .alias('aqgt')
     .alias('awa_query_guangyi_text')
-    .action ( async ( {session}, userId ) => {
-      if (!userId) {
-        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-text <角色ID>`)
+    .action ( async ( {session}, skyPlayerId ) => {
+      if (!skyPlayerId) {
+        await session.send(`${h.quote(session.messageId)}请提供光遇角色ID，用法: 查询光翼-text <角色ID>`)
         return;
       }
 
@@ -18,7 +18,7 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
 
       try {
         const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
-        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${skyPlayerId}`
 
         logInfo(ctx, config, '', `文字模式正在请求光翼数据: ${apiUrl}`)
 
@@ -49,9 +49,9 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
           return;
         }
 
-        logInfo(ctx, config, '', `文字模式已获取光翼数据: userId=${userId}, count=${wingData.wing_buffs.length}`)
+        logInfo(ctx, config, '', `文字模式已获取光翼数据: skyPlayerId=${skyPlayerId}, count=${wingData.wing_buffs.length}`)
 
-        const textResult = generateWingText(userId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
+        const textResult = generateWingText(skyPlayerId, wingData.wing_buffs, wingMapManager.getWingMap(), wingMapManager)
 
         await session.send(`${h.quote(session.messageId)}${textResult.slice(0, config.textMaxLength)}`);
         return;
@@ -59,7 +59,7 @@ export function registerTextCommand(ctx: Context, config: Config, wingMapManager
         logInfo(ctx, config, `❌ 文字模式查询光翼失败: ${error}`)
 
         if (error instanceof Error && error.message.includes('404')) {
-          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          await session.send(`${h.quote(session.messageId)}角色ID ${skyPlayerId} 未找到，请检查ID是否正确`);
           return;
         }
 

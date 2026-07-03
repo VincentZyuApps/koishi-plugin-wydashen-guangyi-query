@@ -6,12 +6,12 @@ import { getSharedPortalDirByBaseDir, isFontConfigError, resolveRuntimeFontPath,
 import { buildQueryMarkdown, buildQueryKeyboard, sendQQMarkdown } from '../qq'
 
 export function registerCanvasCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command(config.canvasCommandName + ' <userId:string>')
+  ctx.command(config.canvasCommandName + ' <skyPlayerId:string>')
     .alias('aqgc')
     .alias('awa_query_guangyi_canvas')
-    .action(async ({ session }, userId) => {
-      if (!userId) {
-        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-canvas <角色ID>`)
+    .action(async ({ session }, skyPlayerId) => {
+      if (!skyPlayerId) {
+        await session.send(`${h.quote(session.messageId)}请提供光遇角色ID，用法: 查询光翼-canvas <角色ID>`)
         return
       }
 
@@ -20,7 +20,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
 
       try {
         const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
-        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${skyPlayerId}`
 
         logInfo(ctx, config, '', `Canvas 正在请求光翼数据: ${apiUrl}`)
 
@@ -52,7 +52,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
           return
         }
 
-        logInfo(ctx, config, '', `Canvas 已获取光翼数据: userId=${userId}, count=${wingData.wing_buffs.length}`)
+        logInfo(ctx, config, '', `Canvas 已获取光翼数据: skyPlayerId=${skyPlayerId}, count=${wingData.wing_buffs.length}`)
 
         const apiElapsed = Date.now() - apiStartTime
         const queryTime = new Date()
@@ -62,7 +62,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
             .filter((w: any) => w.name.startsWith('s_'))
             .filter((w: any) => !wingMapManager.getSpiritName(w.name))
           if (unknownSpirits.length > 0) {
-            logInfo(ctx, config, '', `🔍❓ Canvas userId ${userId} 有 ${unknownSpirits.length} 个未知先祖光翼`)
+            logInfo(ctx, config, '', `🔍❓ Canvas skyPlayerId ${skyPlayerId} 有 ${unknownSpirits.length} 个未知先祖光翼`)
             unknownSpirits.forEach((w: any, idx: number) => logInfo(ctx, config, '', `📍 第 ${idx + 1} 个光翼 (idx:${idx}): ${w.name} | collected: ${w.collected} | deposited: ${w.deposited}`))
           }
         }
@@ -70,7 +70,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         const portalIconsPathStr = getSharedPortalDirByBaseDir(ctx.baseDir, config.assetRootPath)
 
         const buf = await renderWingCanvas(
-          userId,
+          skyPlayerId,
           wingData.wing_buffs,
           wingMapManager.getWingMap(),
           (name) => wingMapManager.getSpiritName(name),
@@ -90,7 +90,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         )
 
         const elapsed = Date.now() - startTime
-        logInfo(ctx, config, `🎨✅ Canvas 渲染完成: ${elapsed}ms | userId=${userId}`)
+        logInfo(ctx, config, `🎨✅ Canvas 渲染完成: ${elapsed}ms | skyPlayerId=${skyPlayerId}`)
 
         const modeText = config.canvasDarkMode ? 'dark' : 'light'
         let msg = `${h.quote(session.messageId)}${h.image(buf, `image/${config.canvasImageType}`)}`
@@ -102,8 +102,8 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         await session.send(msg)
 
         if (config.enableQQMarkdown && (session.platform === 'qq' || session.platform === 'qqguild')) {
-          const md = buildQueryMarkdown(apiElapsed, userId, queryTime)
-          const kb = buildQueryKeyboard(config, userId, config.qqMarkdownKeyboardJson)
+          const md = buildQueryMarkdown(apiElapsed, skyPlayerId, queryTime)
+          const kb = buildQueryKeyboard(config, skyPlayerId, config.qqMarkdownKeyboardJson)
           await sendQQMarkdown(ctx, config, session, md, kb)
         }
       } catch (error) {
@@ -118,7 +118,7 @@ export function registerCanvasCommand(ctx: Context, config: Config, wingMapManag
         logInfo(ctx, config, `❌ Canvas 查询光翼失败: ${message}`)
 
         if (message.includes('404')) {
-          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`)
+          await session.send(`${h.quote(session.messageId)}角色ID ${skyPlayerId} 未找到，请检查ID是否正确`)
           return
         }
 

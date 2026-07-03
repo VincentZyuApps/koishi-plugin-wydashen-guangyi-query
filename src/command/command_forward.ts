@@ -5,12 +5,12 @@ import { logInfo } from '../logger'
 import type { WingMapManager } from '../utils'
 
 export function registerForwardCommand(ctx: Context, config: Config, wingMapManager: WingMapManager) {
-  ctx.command(config.forwardCommandName + ' <userId:string>')
+  ctx.command(config.forwardCommandName + ' <skyPlayerId:string>')
     .alias('aqgf')
     .alias('awa_query_guangyi_forward')
-    .action(async ( {session}, userId ) => {
-      if (!userId) {
-        await session.send(`${h.quote(session.messageId)}请提供用户ID，用法: 查询光翼-forward <角色ID>`)
+    .action(async ( {session}, skyPlayerId ) => {
+      if (!skyPlayerId) {
+        await session.send(`${h.quote(session.messageId)}请提供光遇角色ID，用法: 查询光翼-forward <角色ID>`)
         return;
       }
       if ( session.platform !== 'onebot' ){
@@ -22,7 +22,7 @@ export function registerForwardCommand(ctx: Context, config: Config, wingMapMana
 
       try {
         const backendUrl = config.backendUrl || 'http://bluerosion.vincentzyu233.cn:51024'
-        const apiUrl = `${backendUrl}/queryGuangyi?id=${userId}`
+        const apiUrl = `${backendUrl}/queryGuangyi?id=${skyPlayerId}`
 
         logInfo(ctx, config, '', `合并转发模式正在请求光翼数据: ${apiUrl}`)
 
@@ -53,10 +53,10 @@ export function registerForwardCommand(ctx: Context, config: Config, wingMapMana
           return;
         }
 
-        logInfo(ctx, config, '', `合并转发模式已获取光翼数据: userId=${userId}, count=${wingData.wing_buffs.length}`)
+        logInfo(ctx, config, '', `合并转发模式已获取光翼数据: skyPlayerId=${skyPlayerId}, count=${wingData.wing_buffs.length}`)
 
         const forwardMessage = generateWingForward(
-          userId,
+          skyPlayerId,
           wingData.wing_buffs,
           wingMapManager.getWingMap(),
           wingMapManager,
@@ -69,7 +69,7 @@ export function registerForwardCommand(ctx: Context, config: Config, wingMapMana
         logInfo(ctx, config, `❌ 合并转发模式查询光翼失败: ${error}`)
 
         if (error instanceof Error && error.message.includes('404')) {
-          await session.send(`${h.quote(session.messageId)}角色ID ${userId} 未找到，请检查ID是否正确`);
+          await session.send(`${h.quote(session.messageId)}角色ID ${skyPlayerId} 未找到，请检查ID是否正确`);
           return;
         }
 
