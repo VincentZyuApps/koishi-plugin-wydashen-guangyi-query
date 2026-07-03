@@ -20,8 +20,8 @@ export const usage = `
     <img src="https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white" alt="Gitee">
   </a>
   <br>
-  <a href="https://forum.koishi.xyz/t/topic/12467" target="_blank">
-    <img src="https://img.shields.io/badge/Koishi Forum-12467-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
+  <a href="https://forum.koishi.xyz/t/topic/12378" target="_blank">
+    <img src="https://img.shields.io/badge/Koishi Forum-12378-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
   </a>
   <br>
   <a href="https://qm.qq.com/q/4vjto4V7Di" target="_blank">

@@ -8,7 +8,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-点我查看_Readme-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
 [![Gitee](https://img.shields.io/badge/Gitee-点我查看_Readme-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
 
-[![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_12467-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12467)
+[![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_12378-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12378)
 [![awa群-zyu建的qq群](https://img.shields.io/badge/awa群_zyu建的qq群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
 [![光遇Bot群](https://img.shields.io/badge/光遇Bot群-475328908-D63A4D?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/oVxZoksppK)
 
@@ -21,7 +21,7 @@
 <p>🤖 Nonebot / Koishi /  Zerobot... Python JavaScript TypeScript Go... 等等技术交流 欢迎也来讨论 sky光遇bot交流qq群：<b>475328908</b></p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
-> ⚠️ 如果查询光翼的后端挂了，请到群里找 **vincentzyu** 反馈~
+> ⚠️ 如果查询光翼的后端挂了，请到群里找 **@VincentZyu** 反馈~
 
 ---
 
