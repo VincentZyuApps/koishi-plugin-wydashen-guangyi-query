@@ -61,17 +61,9 @@ export async function sendQQMarkdown(
   _msgSeq?: number,
 ): Promise<void> {
   try {
-    const isCrack = !!(session.bot as any)?.config?.autoStreamText
+    const internal = (session.bot as any)?.internal
 
-    if (isCrack) {
-      const payload: Record<string, unknown> = {
-        markdown: { content: markdown },
-      }
-      if ((keyboard as any)?.rows?.length) {
-        payload.keyboard = { content: keyboard }
-      }
-      await session.send(h('qq:rawmarkdown', payload))
-    } else {
+    if (internal) {
       const payload: Record<string, unknown> = {
         msg_type: 2,
         markdown: { content: markdown },
@@ -87,8 +79,23 @@ export async function sendQQMarkdown(
         payload.msg_seq = ++s.seq
       }
 
-      await session.bot.internal.sendMessage(session.channelId, payload)
+      if (session.isDirect) {
+        const targetId = session.guildId || session.channelId || session.userId
+        await internal.sendPrivateMessage(targetId, payload)
+      } else {
+        await internal.sendMessage(session.channelId, payload)
+      }
+      return
     }
+
+    // 兜底降级：在无 internal 场景下走元素发送
+    const fallbackPayload: Record<string, unknown> = {
+      markdown: { content: markdown },
+    }
+    if ((keyboard as any)?.rows?.length) {
+      fallbackPayload.keyboard = { content: keyboard }
+    }
+    await session.send(h('qq:rawmarkdown', fallbackPayload))
   } catch (error) {
     logInfo(ctx, config, `⚠️ QQ Markdown 发送失败，不影响图片主流程：${error instanceof Error ? error.message : String(error)}`)
   }
