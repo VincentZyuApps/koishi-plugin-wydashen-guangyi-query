@@ -47,23 +47,23 @@
 
 ### 查询光翼 \<玩家id\>
 > 返回结果
-![doc/images/preview/gen_image_pptr.png](doc/images/preview/gen_image_pptr.png)
+![doc/images/preview/gen_image_pptr.png](https://cdn.jsdelivr.net/gh/VincentZyuApps/koishi-plugin-wydashen-guangyi-query@main/doc/images/preview/gen_image_pptr.png)
 
 ### 查询光翼-canvas \<玩家id\>
 > 返回结果（示例）
-![doc/images/preview/gen_image_canvas.png](doc/images/preview/gen_image_canvas.png)
+![doc/images/preview/gen_image_canvas.png](https://cdn.jsdelivr.net/gh/VincentZyuApps/koishi-plugin-wydashen-guangyi-query@main/doc/images/preview/gen_image_canvas.png)
 
 ### 查询光翼-forward \<玩家id\>
 > 返回结果（示例）
-![doc/images/preview/gen_image_forward.png](doc/images/preview/gen_image_forward.png)
+![doc/images/preview/gen_image_forward.png](https://cdn.jsdelivr.net/gh/VincentZyuApps/koishi-plugin-wydashen-guangyi-query@main/doc/images/preview/gen_image_forward.png)
 
 ### 获取id方法
 > 返回结果
-![assets/tutorial/tutorial_20260614_html.png](assets/tutorial/tutorial_20260614_html.png)
+![assets/tutorial/tutorial_20260614_html.png](https://cdn.jsdelivr.net/gh/VincentZyuApps/koishi-plugin-wydashen-guangyi-query@main/assets/tutorial/tutorial_20260614_html.png)
 
 ### QQ 官方 Bot Markdown 按钮消息
 > 返回结果（示例）
-![doc/images/preview/qq_markdown_button.png](doc/images/preview/qq_markdown_button.png)
+![doc/images/preview/qq_markdown_button.png](https://cdn.jsdelivr.net/gh/VincentZyuApps/koishi-plugin-wydashen-guangyi-query@main/doc/images/preview/qq_markdown_button.png)
 
 ---
 
