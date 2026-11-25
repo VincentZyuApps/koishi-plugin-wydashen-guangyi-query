@@ -17,6 +17,8 @@ tsconfig.tsbuildinfo
 *.njsproj
 *.sln
 
-# 🐍 Python bytecode cache
 __pycache__/
 *.pyc
+
+temp
+tmp

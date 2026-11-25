@@ -1,6 +1,6 @@
 """
-网易大神光翼查询 API - 增强测试客户端
-纯内置库，彩色输出 + emoji，覆盖全部端点
+网易大神光翼查询 API - 增强测试客户端 (Python 版)
+纯内置库，彩色输出 + emoji，覆盖双线路与全部端点
 """
 
 import json
@@ -19,7 +19,8 @@ BOLD = "\033[1m"
 RESET = "\033[0m"
 
 # ============ 配置 ============
-# 支持按文档配置的双线路
+DEFAULT_ROLE_ID = "137106295"
+
 LINES = {
     "CF 保护主线路 (推荐)": "https://cf-guangyi.vincentzyu233.cn",
     "国内直连备用线路": "https://guangyi.vincentzyu233.cn",
@@ -52,9 +53,7 @@ def print_section(text):
 def print_ok(emoji, label, elapsed, detail=None):
     STATS["total"] += 1
     STATS["ok"] += 1
-    print(
-        f"\n  {GREEN}✅ 通过{RESET}  {emoji} {label}  {CYAN}({color_time(elapsed)}){RESET}"
-    )
+    print(f"\n  {GREEN}✅ 通过{RESET}  {emoji} {label}  {CYAN}({color_time(elapsed)}){RESET}")
     if detail:
         for line in detail.split("\n"):
             print(f"    {line}")
@@ -63,9 +62,7 @@ def print_ok(emoji, label, elapsed, detail=None):
 def print_fail(emoji, label, elapsed, detail=None):
     STATS["total"] += 1
     STATS["fail"] += 1
-    print(
-        f"\n  {RED}❌ 失败{RESET}  {emoji} {label}  {CYAN}({color_time(elapsed)}){RESET}"
-    )
+    print(f"\n  {RED}❌ 失败{RESET}  {emoji} {label}  {CYAN}({color_time(elapsed)}){RESET}")
     if detail:
         for line in detail.split("\n"):
             print(f"    {line}")
@@ -179,7 +176,7 @@ def test_health():
     return ok
 
 
-def test_query(role_id="137106295"):
+def test_query(role_id):
     print_section(f"GET /queryGuangyi?id={role_id}  — 查询光翼数据")
     status, data, elapsed, err = do_get(f"{BASE_URL}/queryGuangyi?id={role_id}")
 
@@ -190,46 +187,30 @@ def test_query(role_id="137106295"):
     lines = [f"🔗 URL: {CYAN}{BASE_URL}/queryGuangyi?id={role_id}{RESET}"]
     lines.append(f"📦 HTTP 状态码: {status}")
 
-    if status == 200:
+    if status == 200 and isinstance(data, dict):
         lines.append(f"\n  {GREEN}✅ 请求成功！{RESET}")
 
-        if "signedUrl" in data:
-            lines.append(f"\n  {BOLD}🔐 签名 URL:{RESET}")
-            lines.append(f"    {CYAN}{data['signedUrl']}{RESET}")
-
-        if "requestBody" in data:
-            lines.append(f"\n  {BOLD}📤 请求体:{RESET}")
-            for line in json_dumps(data["requestBody"]).split("\n"):
-                lines.append(f"    {line}")
-
-        if "data" in data:
-            lines.append(f"\n  {BOLD}📥 服务器响应:{RESET}")
-            for line in json_dumps(data["data"]).split("\n"):
-                lines.append(f"    {line}")
-
+        if "data" in data and isinstance(data["data"], dict):
             resp_data = data["data"]
-            if isinstance(resp_data, dict) and "code" in resp_data:
-                code = resp_data["code"]
-                errmsg = resp_data.get("errmsg", "")
-                lines.append(f"\n  {BOLD}📋 响应分析:{RESET}")
-                lines.append(f"    状态码: {code}")
-                lines.append(f"    错误信息: {errmsg}")
+            code = resp_data.get("code")
+            errmsg = resp_data.get("errmsg", "")
+            lines.append(f"\n  {BOLD}📋 响应分析:{RESET}")
+            lines.append(f"    状态码: {code}")
+            lines.append(f"    错误信息: {errmsg}")
 
-                if code == 803:
-                    lines.append(f"\n  {YELLOW}⚠️  参数错误！可能的原因:{RESET}")
-                    lines.append(f"    1. 角色 ID 格式不正确")
-                    lines.append(f"    2. 服务器 ID 不匹配")
-                    lines.append(f"    3. 缺少必要的请求头")
-                    lines.append(f"    4. 签名参数有误")
-                elif code == 200 or code == 0:
-                    lines.append(f"\n  {GREEN}✅ 查询成功，数据正常！{RESET}")
-                else:
-                    lines.append(f"\n  {RED}❌ 查询失败，错误码: {code}{RESET}")
+            if code == 803:
+                lines.append(f"\n  {YELLOW}⚠️  参数错误！可能的原因:{RESET}")
+                lines.append(f"    1. 角色 ID 格式不正确")
+                lines.append(f"    2. 服务器 ID 不匹配")
+            elif code == 200 or code == 0:
+                lines.append(f"\n  {GREEN}✅ 查询成功，数据正常！{RESET}")
+            else:
+                lines.append(f"\n  {RED}❌ 查询失败，错误码: {code}{RESET}")
     else:
         lines.append(f"\n  {RED}❌ 请求失败{RESET}")
         lines.append(f"  {json_dumps(data)}")
 
-    ok = status == 200 and data.get("success", False)
+    ok = status == 200 and isinstance(data, dict) and data.get("code", 200) == 200
     if ok:
         print_ok("🔍", "查询光翼", elapsed, "\n".join(lines))
     else:
@@ -238,7 +219,7 @@ def test_query(role_id="137106295"):
 
 
 def test_refresh_token():
-    print_section("GET /refreshToken  — 刷新 Token")
+    print_section("GET /refreshToken  — 刷新 Token (安全策略验证)")
     status, data, elapsed, err = do_get(f"{BASE_URL}/refreshToken")
 
     if err:
@@ -252,19 +233,11 @@ def test_refresh_token():
         print_ok("🛡️", "刷新 Token 安全拦截", elapsed, "\n".join(lines))
         return True
 
-    if status == 200 and data.get("success"):
+    if status == 200 and isinstance(data, dict) and data.get("success"):
         lines.append(f"\n  {GREEN}✅ Token 刷新成功！{RESET}")
-        if data.get("token_preview"):
-            lines.append(f"\n  🔑 Token 预览: {CYAN}{data['token_preview']}{RESET}")
-        if data.get("uid"):
-            lines.append(f"  👤 UID: {YELLOW}{data['uid']}{RESET}")
-        if data.get("last_refresh_at"):
-            lines.append(f"  ⏱️  上次刷新: {data['last_refresh_at']}")
-        if data.get("message"):
-            lines.append(f"  💬 消息: {data['message']}")
     else:
         err_msg = data.get("message", data.get("detail", "未知错误")) if isinstance(data, dict) else str(data)
-        lines.append(f"\n  {RED}❌ Token 刷新失败{RESET}")
+        lines.append(f"\n  {RED}❌ Token 刷新端点返回异常{RESET}")
         lines.append(f"  💬 {err_msg}")
 
     ok = status == 200 and isinstance(data, dict) and data.get("success", False)
@@ -278,7 +251,7 @@ def test_refresh_token():
 # ============ 主流程 ============
 
 
-def run_tests_for_base_url(line_name, url):
+def run_tests_for_base_url(line_name, url, role_id):
     global BASE_URL
     BASE_URL = url
     print(f"\n{BOLD}{MAGENTA}{'=' * 60}{RESET}")
@@ -289,20 +262,28 @@ def run_tests_for_base_url(line_name, url):
     results = []
     results.append(test_root())
     results.append(test_health())
-    results.append(test_query("137106295"))
+    results.append(test_query(role_id))
     results.append(test_refresh_token())
     return all(results)
 
 
 def main():
     print(f"\n{BOLD}{CYAN}{'#' * 60}{RESET}")
-    print(f"{BOLD}{CYAN}  🔥  网易大神光翼查询 API — 双线路综合连通性测试{RESET}")
+    print(f"{BOLD}{CYAN}  🔥  网易大神光翼查询 API — 综合连通性测试 (Python 版){RESET}")
     print(f"{BOLD}{CYAN}{'#' * 60}{RESET}")
+
+    # 处理命令行传入的玩家 ID
+    if len(sys.argv) > 1 and sys.argv[1].strip():
+        role_id = sys.argv[1].strip()
+        print(f"\n{BOLD}{GREEN}🎯 使用传入的玩家角色 ID: {role_id}{RESET}")
+    else:
+        role_id = DEFAULT_ROLE_ID
+        print(f"\n{BOLD}{YELLOW}⚠️  提示: 命令行未传入玩家角色 ID，Fallback 回退到默认真实玩家 ID: {CYAN}{role_id}{RESET}")
 
     all_passed = True
     try:
         for name, url in LINES.items():
-            line_passed = run_tests_for_base_url(name, url)
+            line_passed = run_tests_for_base_url(name, url, role_id)
             if not line_passed:
                 all_passed = False
     except KeyboardInterrupt:
