@@ -1,11 +1,13 @@
+# 📖 网易大神光翼查询 API 接口文档
+
 > **服务接口地址**：
 > - **生产主线（推荐 / Cloudflare 保护）**：`https://cf-guangyi.vincentzyu233.cn`
 > - **国内备用（直连低延迟）**：`https://guangyi.vincentzyu233.cn`
 > - 全接口启用 HTTPS 与 CORS 跨域支持。
 
-## API 端点
+## 🔌 API 端点
 
-### 1. 根路径
+### 🏠 1. 根路径
 
 ```
 GET /
@@ -64,7 +66,7 @@ curl "https://cf-guangyi.vincentzyu233.cn/"
 }
 ```
 
-### 2. 健康检查
+### 🩺 2. 健康检查
 
 ```
 GET /checkhealth
@@ -126,7 +128,7 @@ Token 未就绪：
 }
 ```
 
-### 3. 查询光翼数据 ⭐
+### 🪽 3. 查询光翼数据 ⭐
 
 ```
 GET /queryGuangyi?id=角色ID
@@ -153,9 +155,9 @@ curl "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295"
 }
 ```
 
-## 使用示例
+## 💡 使用示例
 
-### 自动化双线测试套件 (4 语言等价)
+### 🧪 自动化双线测试套件 (4 语言等价)
 
 全套脚本均内置默认玩家 ID Fallback (`137106295`)，支持命令行传参自定义 ID，同时覆盖 Cloudflare 保护线与国内直连备用线：
 
@@ -173,7 +175,7 @@ powershell -ExecutionPolicy Bypass -File doc/scripts/test-api.ps1 [-RoleId 角�
 bash doc/scripts/test-api.sh [角色ID]
 ```
 
-### Python 写法
+### 🐍 Python 写法
 
 ```python
 import requests
@@ -187,7 +189,7 @@ response = requests.get("https://cf-guangyi.vincentzyu233.cn/queryGuangyi", para
 print(response.json())
 ```
 
-### JavaScript / Node.js 写法
+### 🟨 JavaScript / Node.js 写法
 
 ```javascript
 // 健康检查
@@ -201,12 +203,12 @@ fetch('https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295')
   .then(data => console.log(data));
 ```
 
-### cURL 指令
+### 🌐 cURL 指令
 
 > **提示**：在 Windows PowerShell 中，直接运行 `curl` 默认会调用其内置别名 `Invoke-WebRequest`（其语法和表现与原生 cURL 不一致）。
 > 显式指定 **`curl.exe`** 可以直接调用 Windows 自带的 原生 Linux 风格 cURL，语法更简洁通用！
 
-#### 1. Linux / macOS (Bash)
+#### 🐧 1. Linux / macOS (Bash)
 
 ```bash
 # 根路径
@@ -219,7 +221,7 @@ curl -s "https://cf-guangyi.vincentzyu233.cn/checkhealth" | jq
 curl -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | jq
 ```
 
-#### 2. Windows PowerShell (显式指定 `curl.exe` Linux 风格 ⭐)
+#### ⚡ 2. Windows PowerShell (显式指定 `curl.exe` Linux 风格 ⭐)
 
 ```powershell
 # 根路径
@@ -232,7 +234,7 @@ curl.exe -s "https://cf-guangyi.vincentzyu233.cn/checkhealth" | ConvertFrom-Json
 curl.exe -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | ConvertFrom-Json | ConvertTo-Json -Depth 5
 ```
 
-#### 3. Windows CMD (命令提示符 `curl.exe`)
+#### 💻 3. Windows CMD (命令提示符 `curl.exe`)
 
 ```cmd
 :: 根路径
@@ -245,7 +247,7 @@ curl.exe -s "https://cf-guangyi.vincentzyu233.cn/checkhealth"
 curl.exe -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295"
 ```
 
-#### 4. 原生 PowerShell Cmdlet 写法 (备选)
+#### 📜 4. 原生 PowerShell Cmdlet 写法 (备选)
 
 ```powershell
 # 根路径
