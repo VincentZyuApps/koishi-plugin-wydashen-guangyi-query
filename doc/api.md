@@ -155,9 +155,22 @@ curl "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295"
 
 ## 使用示例
 
-### Python 测试脚本
-```shell
-python ./scripts/test.py
+### 自动化双线测试套件 (4 语言等价)
+
+全套脚本均内置默认玩家 ID Fallback (`137106295`)，支持命令行传参自定义 ID，同时覆盖 Cloudflare 保护线与国内直连备用线：
+
+```bash
+# Python 版
+uv run python doc/scripts/test-api.py [角色ID]
+
+# Node.js 版
+node doc/scripts/test-api.js [角色ID]
+
+# PowerShell 版 (Windows)
+powershell -ExecutionPolicy Bypass -File doc/scripts/test-api.ps1 [-RoleId 角色ID]
+
+# Bash / WSL 版
+bash doc/scripts/test-api.sh [角色ID]
 ```
 
 ### Python 写法
@@ -174,7 +187,7 @@ response = requests.get("https://cf-guangyi.vincentzyu233.cn/queryGuangyi", para
 print(response.json())
 ```
 
-### JavaScript 写法
+### JavaScript / Node.js 写法
 
 ```javascript
 // 健康检查
@@ -188,24 +201,59 @@ fetch('https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295')
   .then(data => console.log(data));
 ```
 
-### cURL
+### cURL 指令
 
-### Linux Bash
+> **提示**：在 Windows PowerShell 中，直接运行 `curl` 默认会调用其内置别名 `Invoke-WebRequest`（其语法和表现与原生 cURL 不一致）。
+> 显式指定 **`curl.exe`** 可以直接调用 Windows 自带的 原生 Linux 风格 cURL，语法更简洁通用！
+
+#### 1. Linux / macOS (Bash)
 
 ```bash
-curl "https://cf-guangyi.vincentzyu233.cn/" | jq
+# 根路径
+curl -s "https://cf-guangyi.vincentzyu233.cn/" | jq
+
 # 健康检查
-curl "https://cf-guangyi.vincentzyu233.cn/checkhealth" | jq
+curl -s "https://cf-guangyi.vincentzyu233.cn/checkhealth" | jq
+
 # 查询光翼数据
-curl "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | jq
+curl -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | jq
 ```
 
-### Windows Powershell
+#### 2. Windows PowerShell (显式指定 `curl.exe` Linux 风格 ⭐)
 
 ```powershell
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
-# 健康检查
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/checkhealth").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+# 根路径
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/"
+
+# 健康检查 (可配合 ConvertFrom-Json 格式化高亮)
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/checkhealth" | ConvertFrom-Json | ConvertTo-Json -Depth 5
+
 # 查询光翼数据
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | ConvertFrom-Json | ConvertTo-Json -Depth 5
+```
+
+#### 3. Windows CMD (命令提示符 `curl.exe`)
+
+```cmd
+:: 根路径
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/"
+
+:: 健康检查
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/checkhealth"
+
+:: 查询光翼数据
+curl.exe -s "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295"
+```
+
+#### 4. 原生 PowerShell Cmdlet 写法 (备选)
+
+```powershell
+# 根路径
+(Invoke-RestMethod "https://cf-guangyi.vincentzyu233.cn/") | ConvertTo-Json -Depth 5
+
+# 健康检查
+(Invoke-RestMethod "https://cf-guangyi.vincentzyu233.cn/checkhealth") | ConvertTo-Json -Depth 5
+
+# 查询光翼数据
+(Invoke-RestMethod "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295") | ConvertTo-Json -Depth 5
 ```
