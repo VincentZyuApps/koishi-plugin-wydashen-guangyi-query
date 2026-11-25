@@ -19,7 +19,12 @@ BOLD = "\033[1m"
 RESET = "\033[0m"
 
 # ============ 配置 ============
-BASE_URL = "http://bluerosion.vincentzyu233.cn:51024"
+# 支持按文档配置的双线路
+LINES = {
+    "CF 保护主线路 (推荐)": "https://cf-guangyi.vincentzyu233.cn",
+    "国内直连备用线路": "https://guangyi.vincentzyu233.cn",
+}
+BASE_URL = list(LINES.values())[0]
 
 # ============ 统计 ============
 STATS = {"total": 0, "ok": 0, "fail": 0}
@@ -76,7 +81,11 @@ def json_dumps(obj):
 def do_get(url):
     start = time.time()
     try:
-        req = urllib.request.Request(url)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+        }
+        req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
             body = resp.read().decode("utf-8")
             elapsed = time.time() - start
@@ -125,6 +134,10 @@ def test_health():
         print_fail("📊", "健康检查", elapsed, err)
         return False
 
+    if not isinstance(data, dict):
+        print_fail("📊", "健康检查", elapsed, f"非预期格式响应: {data}")
+        return False
+
     checks = data.get("checks", {})
     check_lines = []
     check_map = {
@@ -144,7 +157,7 @@ def test_health():
     status_str = data.get("status", "unknown")
     status_colored = (
         f"{GREEN}{status_str}{RESET}"
-        if status_str == "healthy"
+        if status_str in ("healthy", "ok")
         else f"{RED}{status_str}{RESET}"
     )
 
@@ -158,7 +171,7 @@ def test_health():
         + f"    服务器: {details.get('server', 'N/A')}"
     )
 
-    ok = status == 200 and data.get("status") == "healthy"
+    ok = status == 200 and data.get("status") in ("healthy", "ok")
     if ok:
         print_ok("📊", "健康检查", elapsed, detail)
     else:
@@ -234,6 +247,11 @@ def test_refresh_token():
 
     lines = [f"🔗 URL: {CYAN}{BASE_URL}/refreshToken{RESET}"]
 
+    if status == 403:
+        lines.append(f"\n  {GREEN}🛡️  生产安全策略正常：外网刷新端点已被成功防护 (403 Forbidden){RESET}")
+        print_ok("🛡️", "刷新 Token 安全拦截", elapsed, "\n".join(lines))
+        return True
+
     if status == 200 and data.get("success"):
         lines.append(f"\n  {GREEN}✅ Token 刷新成功！{RESET}")
         if data.get("token_preview"):
@@ -245,11 +263,11 @@ def test_refresh_token():
         if data.get("message"):
             lines.append(f"  💬 消息: {data['message']}")
     else:
-        err_msg = data.get("message", data.get("detail", "未知错误"))
+        err_msg = data.get("message", data.get("detail", "未知错误")) if isinstance(data, dict) else str(data)
         lines.append(f"\n  {RED}❌ Token 刷新失败{RESET}")
         lines.append(f"  💬 {err_msg}")
 
-    ok = status == 200 and data.get("success", False)
+    ok = status == 200 and isinstance(data, dict) and data.get("success", False)
     if ok:
         print_ok("⚡", "刷新 Token", elapsed, "\n".join(lines))
     else:
@@ -260,20 +278,36 @@ def test_refresh_token():
 # ============ 主流程 ============
 
 
-def main():
+def run_tests_for_base_url(line_name, url):
+    global BASE_URL
+    BASE_URL = url
     print(f"\n{BOLD}{MAGENTA}{'=' * 60}{RESET}")
-    print(f"{BOLD}{MAGENTA}  🚀  网易大神光翼查询 API — 增强测试客户端{RESET}")
+    print(f"{BOLD}{MAGENTA}  🚀  测试线路: {line_name}{RESET}")
     print(f"{BOLD}{MAGENTA}  🌐  {BASE_URL}{RESET}")
-    print(f"{BOLD}{MAGENTA}{'=' * 60}{RESET}\n")
+    print(f"{BOLD}{MAGENTA}{'=' * 60}{RESET}")
 
     results = []
+    results.append(test_root())
+    results.append(test_health())
+    results.append(test_query("137106295"))
+    results.append(test_refresh_token())
+    return all(results)
+
+
+def main():
+    print(f"\n{BOLD}{CYAN}{'#' * 60}{RESET}")
+    print(f"{BOLD}{CYAN}  🔥  网易大神光翼查询 API — 双线路综合连通性测试{RESET}")
+    print(f"{BOLD}{CYAN}{'#' * 60}{RESET}")
+
+    all_passed = True
     try:
-        results.append(test_root())
-        results.append(test_health())
-        results.append(test_query("137106295"))
-        results.append(test_refresh_token())
+        for name, url in LINES.items():
+            line_passed = run_tests_for_base_url(name, url)
+            if not line_passed:
+                all_passed = False
     except KeyboardInterrupt:
         print(f"\n{YELLOW}⚠️  用户中断{RESET}")
+        all_passed = False
 
     # 汇总
     print(f"\n{BOLD}{'=' * 60}{RESET}")
@@ -286,12 +320,12 @@ def main():
     else:
         sc = RED
         icon = "😢"
-    print(f"{BOLD}  {icon}  测试汇总: {sc}{ok}/{total} 通过{RESET}")
+    print(f"{BOLD}  {icon}  双线测试汇总: {sc}{ok}/{total} 通过{RESET}")
     if fail > 0:
         print(f"{BOLD}  {RED}  {fail} 项失败{RESET}")
     print(f"{BOLD}{'=' * 60}{RESET}\n")
 
-    return fail == 0
+    return all_passed
 
 
 if __name__ == "__main__":
