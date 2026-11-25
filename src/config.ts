@@ -65,8 +65,8 @@ export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
     backendUrl: Schema.string()
       .role('textarea', { rows: [2, 4] })
-      .description('🌐 后端服务器地址')
-      .default('http://bluerosion.vincentzyu233.cn:51024'),
+      .description('🌐 后端服务器地址 <br><em>(默认使用 Cloudflare 保护线路；若遇网络问题可切换为国内直连: <code>https://guangyi.vincentzyu233.cn</code>)</em>')
+      .default('https://cf-guangyi.vincentzyu233.cn'),
     wyWingMapUrl: Schema.string()
       .role('textarea', { rows: [2, 4] })
       .description('🗺️ 光翼 ID 映射 JSON 地址')
@@ -111,7 +111,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(true)
       .description('📚 注册教程指令'),
     tutorialCommandName: Schema.string()
-      .default('获取id方法')
+      .default('获取光遇国服玩家id方法')
       .description('📚 教程指令名称'),
     enableRefreshCommand: Schema.boolean()
       .default(true)
