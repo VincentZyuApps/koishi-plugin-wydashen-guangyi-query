@@ -1,3 +1,8 @@
+> **服务接口地址**：
+> - **生产主线（推荐 / Cloudflare 保护）**：`https://cf-guangyi.vincentzyu233.cn`
+> - **国内备用（直连低延迟）**：`https://guangyi.vincentzyu233.cn`
+> - 全接口启用 HTTPS 与 CORS 跨域支持。
+
 ## API 端点
 
 ### 1. 根路径
@@ -8,7 +13,7 @@ GET /
 
 **请求示例：**
 ```bash
-curl "http://bluerosion.vincentzyu233.cn:51024/"
+curl "https://cf-guangyi.vincentzyu233.cn/"
 ```
 
 **返回示例：**
@@ -67,7 +72,7 @@ GET /checkhealth
 
 **请求示例：**
 ```bash
-curl "http://bluerosion.vincentzyu233.cn:51024/checkhealth"
+curl "https://cf-guangyi.vincentzyu233.cn/checkhealth"
 ```
 
 **返回示例（200）：**
@@ -132,7 +137,7 @@ GET /queryGuangyi?id=角色ID
 
 **请求示例：**
 ```bash
-curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295"
+curl "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295"
 ```
 
 **返回示例：**
@@ -161,11 +166,11 @@ python ./scripts/test.py
 import requests
 
 # 健康检查
-response = requests.get("http://bluerosion.vincentzyu233.cn:51024/checkhealth")
+response = requests.get("https://cf-guangyi.vincentzyu233.cn/checkhealth")
 print(response.json())
 
 # 查询光翼数据
-response = requests.get("http://bluerosion.vincentzyu233.cn:51024/queryGuangyi", params={"id": "137106295"})
+response = requests.get("https://cf-guangyi.vincentzyu233.cn/queryGuangyi", params={"id": "137106295"})
 print(response.json())
 ```
 
@@ -173,12 +178,12 @@ print(response.json())
 
 ```javascript
 // 健康检查
-fetch('http://bluerosion.vincentzyu233.cn:51024/checkhealth')
+fetch('https://cf-guangyi.vincentzyu233.cn/checkhealth')
   .then(res => res.json())
   .then(data => console.log(data));
 
 // 查询光翼数据
-fetch('http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
+fetch('https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295')
   .then(res => res.json())
   .then(data => console.log(data));
 ```
@@ -188,19 +193,19 @@ fetch('http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295')
 ### Linux Bash
 
 ```bash
-curl "http://bluerosion.vincentzyu233.cn:51024/" | jq
+curl "https://cf-guangyi.vincentzyu233.cn/" | jq
 # 健康检查
-curl "http://bluerosion.vincentzyu233.cn:51024/checkhealth" | jq
+curl "https://cf-guangyi.vincentzyu233.cn/checkhealth" | jq
 # 查询光翼数据
-curl "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295" | jq
+curl "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295" | jq
 ```
 
 ### Windows Powershell
 
 ```powershell
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
 # 健康检查
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/checkhealth").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/checkhealth").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
 # 查询光翼数据
-[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "http://bluerosion.vincentzyu233.cn:51024/queryGuangyi?id=137106295").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
+[System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest "https://cf-guangyi.vincentzyu233.cn/queryGuangyi?id=137106295").RawContentStream.ToArray()) | ConvertFrom-Json | ConvertTo-Json -Depth 100
 ```
