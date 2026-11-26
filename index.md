@@ -16,8 +16,11 @@ hero:
       text: 📖 API 文档
       link: /docs/api
     - theme: alt
-      text: 🆔 获取 ID
+      text: 🆔 获取国服玩家ID教程
       link: /tutorial
+    - theme: alt
+      text: 🤖 Koishi插件
+      link: /koishi-plugin
 
 features:
   - title: 🪽 光翼查询
