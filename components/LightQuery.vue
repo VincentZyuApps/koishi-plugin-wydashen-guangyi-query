@@ -12,12 +12,30 @@ import {
   type WingStyle,
 } from '../lib/wing'
 import { assetUrl, getWingData, type WingDataResult } from '../lib/wingData'
+import {
+  clearRecent,
+  loadRecent,
+  pushRecent,
+  removeRecent,
+} from '../lib/recent'
 import LineSwitch from './LineSwitch.vue'
 import ExportActions from './ExportActions.vue'
 import StyleSwitcher from './StyleSwitcher.vue'
+import RecentQueries from './RecentQueries.vue'
 import WingVitepress from './wing/WingVitepress.vue'
 import WingLxgw from './wing/WingLxgw.vue'
 import WingApple from './wing/WingApple.vue'
+
+interface RecentLightEntry {
+  id: string
+  line: Line
+  savedAt: number
+  total: number
+  collected: number
+  wings: WingData[]
+}
+
+const RECENT_KEY = 'wgd:recent:light:v1'
 
 const roleId = ref('')
 const line = ref<Line>('direct')
@@ -26,6 +44,8 @@ const error = ref('')
 const role = ref('')
 const apiWings = ref<WingData[]>([])
 const resultRef = ref<HTMLElement | null>(null)
+const recent = ref<RecentLightEntry[]>([])
+const fromCache = ref(false)
 
 const wingData = ref<WingDataResult | null>(null)
 const dataLoading = ref(true)
@@ -55,6 +75,7 @@ const styleComp = computed(() =>
 )
 
 onMounted(async () => {
+  recent.value = loadRecent<RecentLightEntry>(RECENT_KEY)
   try {
     wingData.value = await getWingData()
     dataDegraded.value = wingData.value.degraded
@@ -101,6 +122,15 @@ const stats = computed(() => {
 
 const hasResult = computed(() => apiWings.value.length > 0)
 
+const recentItems = computed(() =>
+  recent.value.map((e) => ({
+    id: e.id,
+    title: e.id,
+    meta: `已收集 ${e.collected}/${e.total}`,
+    savedAt: e.savedAt,
+  })),
+)
+
 async function query() {
   const id = roleId.value.trim()
   error.value = ''
@@ -124,6 +154,16 @@ async function query() {
     }
     role.value = res.roleId || id
     apiWings.value = inner.wing_buffs as WingData[]
+    fromCache.value = false
+    const collected = apiWings.value.filter((w) => w.collected).length
+    recent.value = pushRecent<RecentLightEntry>(RECENT_KEY, recent.value, {
+      id: role.value,
+      line: line.value,
+      savedAt: Date.now(),
+      total: apiWings.value.length,
+      collected,
+      wings: apiWings.value,
+    })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
     error.value = message.toLowerCase().includes('abort')
@@ -132,6 +172,33 @@ async function query() {
   } finally {
     loading.value = false
   }
+}
+
+function applyRecent(id: string) {
+  const entry = recent.value.find((e) => e.id === id)
+  if (!entry) return
+  roleId.value = entry.id
+  role.value = entry.id
+  line.value = entry.line
+  apiWings.value = entry.wings
+  error.value = ''
+  fromCache.value = true
+}
+
+function refresh() {
+  if (!role.value) return
+  roleId.value = role.value
+  fromCache.value = false
+  query()
+}
+
+function onRemoveRecent(id: string) {
+  recent.value = removeRecent<RecentLightEntry>(RECENT_KEY, recent.value, id)
+}
+
+function onClearRecent() {
+  clearRecent(RECENT_KEY)
+  recent.value = []
 }
 </script>
 
@@ -149,6 +216,14 @@ async function query() {
         {{ loading ? '查询中…' : '查询' }}
       </button>
     </div>
+
+    <RecentQueries
+      v-if="recentItems.length"
+      :items="recentItems"
+      @pick="applyRecent"
+      @remove="onRemoveRecent"
+      @clear="onClearRecent"
+    />
 
     <p v-if="dataLoading" class="result-sub">⏳ 正在加载光翼映射表…</p>
     <p v-else-if="dataDegraded" class="query-error">
@@ -169,9 +244,15 @@ async function query() {
           <h2 class="result-title">光翼情况</h2>
           <p class="result-sub">
             角色：{{ role }} · 线路：{{ LINES[line].label }}
+            <span v-if="fromCache"> · 来自缓存</span>
           </p>
         </div>
-        <StyleSwitcher v-model="style" />
+        <div class="result-actions">
+          <button v-if="fromCache" class="refresh-btn" @click="refresh">
+            🔄 刷新
+          </button>
+          <StyleSwitcher v-model="style" />
+        </div>
       </div>
 
       <div class="result-stats">

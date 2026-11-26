@@ -319,3 +319,66 @@
 .exporting .export-actions {
   display: none !important;
 }
+
+/* ===== 加宽中间（修复回归 + 宽屏自适应） ===== */
+.query-page .VPDoc .container { max-width: min(1680px, 94vw); }
+.query-page .VPDoc .content,
+.query-page .VPDoc .content-container { max-width: none; }
+.query-page .vp-doc { padding-top: 4px; }
+.query-panel { max-width: min(1640px, 94vw); }
+
+/* ===== 最近查询 ===== */
+.recent-bar { margin: 4px 0 10px; }
+.recent-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.recent-label { font-size: 13px; font-weight: 600; color: var(--vp-c-text-2); }
+.recent-clear {
+  margin-left: auto;
+  border: 1px solid var(--vp-c-divider);
+  background: transparent;
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.recent-clear:hover { border-color: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
+.recent-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.recent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg);
+  cursor: pointer;
+  font-size: 12px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.recent-chip:hover { border-color: var(--vp-c-brand-1); transform: translateY(-1px); }
+.recent-chip .rc-id { font-weight: 600; color: var(--vp-c-text-1); }
+.recent-chip .rc-meta { color: var(--vp-c-brand-1); }
+.recent-chip .rc-time { color: var(--vp-c-text-3); }
+.recent-chip .rm {
+  border: none;
+  background: transparent;
+  color: var(--vp-c-text-3);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.recent-chip .rm:hover { color: var(--vp-c-danger-1); }
+
+/* ===== 结果头部操作区 + 刷新按钮 ===== */
+.result-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.refresh-btn {
+  border: 1px solid var(--vp-c-brand-1);
+  background: transparent;
+  color: var(--vp-c-brand-1);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.refresh-btn:hover { background: var(--vp-c-brand-1); color: #fff; }

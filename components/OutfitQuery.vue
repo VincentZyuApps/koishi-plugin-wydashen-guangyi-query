@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   getJson,
   iconUrl,
@@ -7,8 +7,26 @@ import {
   type Line,
   type OutfitResponse,
 } from './api'
+import {
+  clearRecent,
+  loadRecent,
+  pushRecent,
+  removeRecent,
+} from '../lib/recent'
 import LineSwitch from './LineSwitch.vue'
 import ExportActions from './ExportActions.vue'
+import RecentQueries from './RecentQueries.vue'
+
+interface RecentOutfitEntry {
+  id: string
+  line: Line
+  savedAt: number
+  total: number
+  uniqueTotal: number
+  response: OutfitResponse
+}
+
+const RECENT_KEY = 'wgd:recent:outfit:v1'
 
 const uuid = ref('')
 const line = ref<Line>('direct')
@@ -17,11 +35,26 @@ const error = ref('')
 const role = ref('')
 const data = ref<OutfitResponse | null>(null)
 const resultRef = ref<HTMLElement | null>(null)
+const recent = ref<RecentOutfitEntry[]>([])
+const fromCache = ref(false)
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const total = computed(() => data.value?.total ?? 0)
 const uniqueTotal = computed(() => data.value?.uniqueTotal ?? 0)
+
+const recentItems = computed(() =>
+  recent.value.map((e) => ({
+    id: e.id,
+    title: e.id.slice(0, 8),
+    meta: `条目 ${e.total}/${e.uniqueTotal}`,
+    savedAt: e.savedAt,
+  })),
+)
+
+onMounted(() => {
+  recent.value = loadRecent<RecentOutfitEntry>(RECENT_KEY)
+})
 
 async function query() {
   const id = uuid.value.trim()
@@ -42,6 +75,15 @@ async function query() {
     }
     role.value = res.roleId || id
     data.value = res
+    fromCache.value = false
+    recent.value = pushRecent<RecentOutfitEntry>(RECENT_KEY, recent.value, {
+      id: role.value,
+      line: line.value,
+      savedAt: Date.now(),
+      total: res.total ?? 0,
+      uniqueTotal: res.uniqueTotal ?? 0,
+      response: res,
+    })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
     error.value = message.toLowerCase().includes('abort')
@@ -50,6 +92,33 @@ async function query() {
   } finally {
     loading.value = false
   }
+}
+
+function applyRecent(id: string) {
+  const entry = recent.value.find((e) => e.id === id)
+  if (!entry) return
+  uuid.value = entry.id
+  role.value = entry.id
+  line.value = entry.line
+  data.value = entry.response
+  error.value = ''
+  fromCache.value = true
+}
+
+function refresh() {
+  if (!role.value) return
+  uuid.value = role.value
+  fromCache.value = false
+  query()
+}
+
+function onRemoveRecent(id: string) {
+  recent.value = removeRecent<RecentOutfitEntry>(RECENT_KEY, recent.value, id)
+}
+
+function onClearRecent() {
+  clearRecent(RECENT_KEY)
+  recent.value = []
 }
 </script>
 
@@ -68,6 +137,14 @@ async function query() {
       </button>
     </div>
 
+    <RecentQueries
+      v-if="recentItems.length"
+      :items="recentItems"
+      @pick="applyRecent"
+      @remove="onRemoveRecent"
+      @clear="onClearRecent"
+    />
+
     <p v-if="error" class="query-error">{{ error }}</p>
     <p v-if="loading" class="result-sub">查询中，请稍候…</p>
 
@@ -77,7 +154,13 @@ async function query() {
           <h2 class="result-title">藏宝阁衣柜</h2>
           <p class="result-sub">
             角色：{{ role }} · 线路：{{ LINES[line].label }}
+            <span v-if="fromCache"> · 来自缓存</span>
           </p>
+        </div>
+        <div class="result-actions">
+          <button v-if="fromCache" class="refresh-btn" @click="refresh">
+            🔄 刷新
+          </button>
         </div>
       </div>
       <div class="result-stats">
@@ -115,4 +198,3 @@ async function query() {
     />
   </div>
 </template>
-
