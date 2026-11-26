@@ -1,9 +1,10 @@
 # 🤖 Koishi 插件介绍
 
-`koishi-plugin-wydashen-guangyi-query` 是一个 Koishi 聊天机器人插件，通过网易大神接口查询《光·遇》国服玩家的光翼收集情况，并支持多种渲染与转发方式。
+[`koishi-plugin-wydashen-guangyi-query`](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query) 是一个 Koishi 聊天机器人插件，通过网易大神接口查询《光·遇》国服玩家的光翼收集情况，并支持多种渲染与转发方式。
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
-[![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query) [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+
+[![GitHub](https://img.shields.io/badge/GitHub-仓库主页-181717?logo=github&style=flat-square)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query) [![Gitee](https://img.shields.io/badge/Gitee-仓库主页-C71D23?logo=gitee&style=flat-square)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
 
 ## 功能特性
 
@@ -46,17 +47,17 @@ yarn add koishi-plugin-wydashen-guangyi-query
 
 **🎴 Puppeteer 渲染长图**
 
-<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_pptr.png" alt="Puppeteer 长图" loading="lazy" style="max-width:420px" />
+<a href="https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/blob/main/doc/images/preview/gen_image_pptr.png" target="_blank" rel="noopener noreferrer"><img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_pptr.png" alt="Puppeteer 长图" loading="lazy" style="max-width:420px" /></a>
 
 **🖥️ Canvas 出图**
 
-<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_canvas.png" alt="Canvas 出图" loading="lazy" style="max-width:420px" />
+<a href="https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/blob/main/doc/images/preview/gen_image_canvas.png" target="_blank" rel="noopener noreferrer"><img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_canvas.png" alt="Canvas 出图" loading="lazy" style="max-width:420px" /></a>
 
 **📄 OneBot 合并转发**
 
-<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_forward.png" alt="合并转发" loading="lazy" style="max-width:420px" />
+<a href="https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/blob/main/doc/images/preview/gen_image_forward.png" target="_blank" rel="noopener noreferrer"><img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_forward.png" alt="合并转发" loading="lazy" style="max-width:420px" /></a>
 
 **🔘 QQ Markdown 按钮**
 
-<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/qq_markdown_button.png" alt="QQ Markdown 按钮" loading="lazy" style="max-width:420px" />
+<a href="https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/blob/main/doc/images/preview/qq_markdown_button.png" target="_blank" rel="noopener noreferrer"><img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/qq_markdown_button.png" alt="QQ Markdown 按钮" loading="lazy" style="max-width:420px" /></a>
 
