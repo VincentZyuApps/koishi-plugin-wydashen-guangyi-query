@@ -225,3 +225,45 @@
 .wing-style-apple .ap-card.uncollected {
   opacity: 0.66;
 }
+
+/* ===== 极光增强 + 每分类主题色 ===== */
+.result-card.wing-style-apple {
+  background:
+    radial-gradient(900px 480px at 10% 6%, rgba(99, 102, 241, 0.55), transparent 60%),
+    radial-gradient(760px 420px at 86% 14%, rgba(16, 185, 129, 0.45), transparent 62%),
+    radial-gradient(720px 460px at 70% 92%, rgba(236, 72, 153, 0.34), transparent 60%),
+    radial-gradient(620px 360px at 22% 78%, rgba(56, 189, 248, 0.30), transparent 60%),
+    radial-gradient(560px 320px at 95% 60%, rgba(250, 204, 21, 0.22), transparent 60%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+.wing-style-apple .ap-head {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.wing-style-apple .ap-head::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 160% at 6% 0%, var(--cat-c1, #6366f1), transparent 55%),
+    radial-gradient(120% 160% at 96% 0%, var(--cat-c2, #22d3ee), transparent 55%);
+  opacity: 0.3;
+}
+.wing-style-apple .ap-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--cat-c1, #6366f1), var(--cat-c2, #22d3ee));
+}
+.wing-style-apple .ap-title {
+  color: #fff;
+}
+.wing-style-apple .ap-bar span {
+  background: linear-gradient(90deg, var(--cat-c1, #6366f1), var(--cat-c2, #22d3ee));
+}

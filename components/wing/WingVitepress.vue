@@ -9,7 +9,12 @@ defineProps<{
 
 <template>
   <div class="wp-categories">
-    <section v-for="g in groups" :key="g.category" class="wp-cat">
+    <section
+      v-for="g in groups"
+      :key="g.category"
+      class="wp-cat"
+      :style="{ '--cat-c1': g.theme[0], '--cat-c2': g.theme[1] }"
+    >
       <div class="wp-cat-head">
         <span class="wp-cat-title">{{ g.categoryEmoji }} {{ g.category }}</span>
         <img

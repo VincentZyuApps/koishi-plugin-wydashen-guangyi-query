@@ -2,16 +2,18 @@
 import { computed, markRaw, onMounted, ref, watch } from 'vue'
 import { getJson, LINES, type Line, type LightResponse } from './api'
 import {
+  assetUrl,
   buildCategoryView,
   calcWingStats,
+  getWingData,
   groupWingsByCategory,
   processWingData,
   type CategoryView,
   type WingData,
+  type WingDataResult,
   type WingDisplayData,
   type WingStyle,
 } from '../lib/wing'
-import { assetUrl, getWingData, type WingDataResult } from '../lib/wingData'
 import {
   clearRecent,
   loadRecent,

@@ -9,7 +9,12 @@ defineProps<{
 
 <template>
   <div class="ap-categories">
-    <section v-for="g in groups" :key="g.category" class="ap-cat">
+    <section
+      v-for="g in groups"
+      :key="g.category"
+      class="ap-cat"
+      :style="{ '--cat-c1': g.theme[0], '--cat-c2': g.theme[1] }"
+    >
       <header class="ap-head">
         <img
           v-if="g.portalFile"

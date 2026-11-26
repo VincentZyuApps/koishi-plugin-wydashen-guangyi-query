@@ -13,6 +13,15 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--cat-c1, var(--vp-c-brand-1));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--cat-c1, #6366f1) 16%, transparent),
+    color-mix(in srgb, var(--cat-c2, #22d3ee) 8%, transparent) 55%,
+    transparent 100%
+  );
 }
 
 .wp-cat-title {
