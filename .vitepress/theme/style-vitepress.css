@@ -1,0 +1,103 @@
+/* ===== 🪶 VitePress 风格（干净主题，五列） ===== */
+.wp-categories {
+  display: flex;
+  flex-direction: column;
+}
+
+.wp-cat {
+  margin: 12px 0;
+}
+
+.wp-cat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wp-cat-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+
+.wp-portal {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.wp-cat-stats {
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+  margin-left: auto;
+}
+
+.wp-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.wp-card {
+  padding: 6px 8px;
+  border: 1px solid var(--vp-c-divider);
+  border-left: 4px solid var(--wing-uncollected);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.wp-card.collected {
+  border-left-color: var(--wing-collected);
+}
+.wp-card.deposited {
+  border-left-color: var(--wing-deposited);
+}
+.wp-card.notRedeemed {
+  border-left-color: var(--wing-notredeemed);
+}
+.wp-card.uncollected {
+  border-left-color: var(--wing-uncollected);
+  opacity: 0.75;
+}
+
+.wp-status {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--vp-c-text-2);
+}
+.wp-card.collected .wp-status {
+  color: var(--wing-collected);
+}
+.wp-card.deposited .wp-status {
+  color: var(--wing-deposited);
+}
+.wp-card.notRedeemed .wp-status {
+  color: var(--wing-notredeemed);
+}
+
+.wp-name {
+  margin: 1px 0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.wp-nature {
+  font-size: 11px;
+  color: var(--vp-c-brand-1);
+}
+
+.wp-sub {
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+@media (max-width: 1100px) {
+  .wp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}

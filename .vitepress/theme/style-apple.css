@@ -1,0 +1,225 @@
+/* ===== 🍎 Apple 风格（基础 + 极光磨砂玻璃皮肤 v2） ===== */
+
+/* 基础结构 */
+.ap-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ap-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.ap-portal {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.ap-headtext {
+  flex: 1;
+}
+
+.ap-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.ap-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-bar {
+  width: 120px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--vp-c-divider);
+  overflow: hidden;
+}
+
+.ap-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--vp-c-brand-1);
+}
+
+.ap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.ap-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  background: var(--vp-c-bg-elv);
+}
+
+.ap-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--wing-uncollected);
+}
+.ap-card.collected .ap-dot {
+  background: var(--wing-collected);
+}
+.ap-card.deposited .ap-dot {
+  background: var(--wing-deposited);
+}
+.ap-card.notRedeemed .ap-dot {
+  background: var(--wing-notredeemed);
+}
+
+.ap-name {
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.ap-meta {
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+/* 皮肤覆盖：极光磨砂玻璃 */
+.result-card.wing-style-apple {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 24px !important;
+  color: #fff !important;
+  background:
+    radial-gradient(1100px 520px at 12% 8%, rgba(99, 102, 241, 0.55), transparent 60%),
+    radial-gradient(900px 480px at 88% 18%, rgba(16, 185, 129, 0.45), transparent 62%),
+    radial-gradient(800px 520px at 70% 92%, rgba(236, 72, 153, 0.32), transparent 60%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45) !important;
+  overflow: hidden;
+}
+.result-card.wing-style-apple::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%);
+  pointer-events: none;
+}
+
+.wing-style-apple .result-title {
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.wing-style-apple .result-sub {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.wing-style-apple .style-switcher {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.wing-style-apple .style-switcher button {
+  color: rgba(255, 255, 255, 0.82);
+}
+.wing-style-apple .style-switcher button.active {
+  background: #fff;
+  color: #0f172a;
+}
+
+.wing-style-apple .result-stats {
+  margin: 14px 0 18px;
+}
+.wing-style-apple .stat {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.wing-style-apple .stat b {
+  color: #f5c542;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.wing-style-apple .stat span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.wing-style-apple .ap-head {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.wing-style-apple .ap-title {
+  color: #fff;
+  font-weight: 700;
+}
+.wing-style-apple .ap-sub {
+  color: rgba(255, 255, 255, 0.7);
+}
+.wing-style-apple .ap-bar {
+  background: rgba(255, 255, 255, 0.18);
+}
+.wing-style-apple .ap-bar span {
+  background: linear-gradient(90deg, #f5c542, #ff8a5c);
+}
+
+.wing-style-apple .ap-card {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 8px 22px rgba(2, 6, 23, 0.28);
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+.wing-style-apple .ap-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 12px 28px rgba(2, 6, 23, 0.4);
+}
+.wing-style-apple .ap-name {
+  color: #fff;
+}
+.wing-style-apple .ap-meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+.wing-style-apple .ap-dot {
+  background: rgba(255, 255, 255, 0.4);
+}
+.wing-style-apple .ap-card.collected {
+  border-left: 3px solid #34d399;
+}
+.wing-style-apple .ap-card.collected .ap-dot {
+  background: #34d399;
+}
+.wing-style-apple .ap-card.deposited {
+  border-left: 3px solid #f5c542;
+}
+.wing-style-apple .ap-card.deposited .ap-dot {
+  background: #f5c542;
+}
+.wing-style-apple .ap-card.notRedeemed {
+  border-left: 3px solid #fb7185;
+}
+.wing-style-apple .ap-card.notRedeemed .ap-dot {
+  background: #fb7185;
+}
+.wing-style-apple .ap-card.uncollected {
+  opacity: 0.66;
+}

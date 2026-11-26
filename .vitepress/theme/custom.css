@@ -1,4 +1,6 @@
-/* ===== 网易大神 黑白红配色 ===== */
+/* ===== 共享基础层：配色变量 + 通用布局 ===== */
+
+/* 网易大神 黑白红配色 */
 :root {
   --vp-c-brand-1: #e60012;
   --vp-c-brand-2: #c50010;
@@ -80,9 +82,9 @@
 
 /* ===== 查询页通用 ===== */
 .query-panel {
-  max-width: 1080px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 8px 0 48px;
+  padding: 4px 20px 32px;
 }
 
 .query-form {
@@ -160,12 +162,12 @@
   white-space: pre-wrap;
 }
 
-/* ===== 结果卡片 ===== */
+/* ===== 结果卡片（共享外壳） ===== */
 .result-card {
   margin-top: 24px;
-  padding: 24px;
+  padding: 16px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--vp-c-bg-soft);
 }
 
@@ -175,7 +177,7 @@
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .result-title {
@@ -191,13 +193,13 @@
 .result-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0 22px;
+  gap: 8px;
+  margin: 10px 0 14px;
 }
 
 .stat {
-  min-width: 96px;
-  padding: 12px 16px;
+  min-width: 84px;
+  padding: 8px 12px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
   background: var(--vp-c-bg);
@@ -206,12 +208,12 @@
 
 .stat b {
   display: block;
-  font-size: 22px;
+  font-size: 18px;
   color: var(--vp-c-brand-1);
 }
 
 .stat span {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--vp-c-text-2);
 }
 
@@ -240,300 +242,7 @@
   color: #fff;
 }
 
-/* 通用分类标题 */
-.wp-cat-head,
-.pp-cat-head,
-.ap-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.wp-portal,
-.pp-portal,
-.ap-portal {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  border-radius: 6px;
-}
-
-/* ===== 🪶 VitePress 风格 ===== */
-.wp-cat {
-  margin: 22px 0;
-}
-
-.wp-cat-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--vp-c-text-1);
-}
-
-.wp-cat-stats {
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-  margin-left: auto;
-}
-
-.wp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.wp-card {
-  padding: 10px 12px;
-  border: 1px solid var(--vp-c-divider);
-  border-left-width: 4px;
-  border-radius: 10px;
-  background: var(--vp-c-bg);
-  font-size: 13px;
-}
-
-.wp-card.collected {
-  border-left-color: var(--wing-collected);
-}
-.wp-card.deposited {
-  border-left-color: var(--wing-deposited);
-}
-.wp-card.notRedeemed {
-  border-left-color: var(--wing-notredeemed);
-}
-.wp-card.uncollected {
-  border-left-color: var(--wing-uncollected);
-  opacity: 0.75;
-}
-
-.wp-status {
-  font-weight: 700;
-  font-size: 12px;
-  color: var(--vp-c-text-2);
-}
-.wp-card.collected .wp-status {
-  color: var(--wing-collected);
-}
-.wp-name {
-  font-weight: 600;
-  word-break: break-all;
-  margin: 2px 0;
-}
-.wp-nature {
-  font-size: 12px;
-  color: var(--vp-c-brand-1);
-}
-.wp-sub {
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-  font-style: italic;
-}
-
-/* ===== 🎴 pptr 风格 ===== */
-.pp-categories {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.pp-cat-head {
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-divider);
-}
-
-.pp-tag {
-  font-size: 16px;
-}
-
-.pp-cat-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--vp-c-brand-1);
-  letter-spacing: 1px;
-}
-
-.pp-cat-stats {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--vp-c-text-2);
-}
-
-.pp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.pp-card {
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg);
-  text-align: center;
-  font-size: 13px;
-}
-
-.pp-card.collected {
-  background: rgba(63, 185, 80, 0.1);
-  border-color: var(--wing-collected);
-}
-.pp-card.deposited {
-  background: rgba(230, 162, 60, 0.12);
-  border-color: var(--wing-deposited);
-}
-.pp-card.notRedeemed {
-  background: var(--vp-c-danger-soft);
-  border-color: var(--wing-notredeemed);
-}
-.pp-card.uncollected {
-  opacity: 0.7;
-}
-
-.pp-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.pp-card.collected .pp-badge {
-  color: var(--wing-collected);
-}
-.pp-card.deposited .pp-badge {
-  color: var(--wing-deposited);
-}
-.pp-card.notRedeemed .pp-badge {
-  color: var(--wing-notredeemed);
-}
-.pp-card.uncollected .pp-badge {
-  color: var(--wing-uncollected);
-}
-
-.pp-name {
-  font-weight: 600;
-  word-break: break-all;
-  color: var(--vp-c-text-1);
-}
-
-.pp-nature {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--vp-c-brand-1);
-  margin: 2px 0;
-}
-
-.pp-cat2 {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--vp-c-text-2);
-}
-
-.pp-sub {
-  font-size: 12px;
-  font-style: italic;
-  color: var(--vp-c-text-3);
-}
-
-/* ===== 🍎 Apple 风格 ===== */
-.ap-categories {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.ap-head {
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.ap-portal {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-}
-
-.ap-headtext {
-  flex: 1;
-}
-
-.ap-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.ap-sub {
-  margin: 0;
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-}
-
-.ap-bar {
-  width: 120px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--vp-c-divider);
-  overflow: hidden;
-}
-
-.ap-bar span {
-  display: block;
-  height: 100%;
-  background: var(--vp-c-brand-1);
-  border-radius: 999px;
-}
-
-.ap-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.ap-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: var(--vp-c-bg-elv);
-  border: 1px solid var(--vp-c-divider);
-  backdrop-filter: blur(8px);
-}
-
-.ap-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--wing-uncollected);
-}
-.ap-card.collected .ap-dot {
-  background: var(--wing-collected);
-}
-.ap-card.deposited .ap-dot {
-  background: var(--wing-deposited);
-}
-.ap-card.notRedeemed .ap-dot {
-  background: var(--wing-notredeemed);
-}
-
-.ap-name {
-  font-weight: 600;
-  font-size: 13px;
-  word-break: break-all;
-}
-
-.ap-meta {
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-}
-
-/* ===== 衣柜 ===== */
+/* ===== 衣柜（无风格切换） ===== */
 .category-title {
   margin: 22px 0 10px;
   font-size: 16px;
@@ -609,49 +318,4 @@
 
 .exporting .export-actions {
   display: none !important;
-}
-
-/* ===== 加宽 + 五列 + 高密度（覆盖） ===== */
-.query-page .VPDoc .container { max-width: 1440px; }
-.query-page .VPDoc .content,
-.query-page .VPDoc .content-container { max-width: none; }
-.query-page .vp-doc { padding-top: 4px; }
-
-.query-panel { max-width: 1400px; padding: 4px 20px 32px; }
-
-.result-card { padding: 16px; border-radius: 14px; }
-.result-head { margin-bottom: 12px; }
-.result-stats { gap: 8px; margin: 10px 0 14px; }
-.stat { min-width: 84px; padding: 8px 12px; }
-.stat b { font-size: 18px; }
-.stat span { font-size: 11px; }
-
-/* VitePress 风格：五列 + 紧凑 */
-.wp-categories { gap: 0; }
-.wp-cat { margin: 12px 0; }
-.wp-cat-head { gap: 6px; }
-.wp-portal { width: 20px; height: 20px; }
-.wp-cat-title { font-size: 14px; }
-.wp-cat-stats { font-size: 11px; }
-.wp-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
-.wp-card { padding: 6px 8px; border-radius: 8px; font-size: 12px; line-height: 1.25; }
-.wp-status { font-size: 11px; }
-.wp-name { margin: 1px 0; }
-.wp-nature { font-size: 11px; }
-.wp-sub { font-size: 11px; }
-
-/* pptr / apple 同步收紧 */
-.pp-categories, .ap-categories { gap: 14px; }
-.pp-grid, .ap-grid { gap: 6px; margin-top: 8px; }
-.pp-card { padding: 6px 8px; font-size: 12px; }
-.pp-badge { font-size: 12px; margin-bottom: 2px; }
-.pp-nature { font-size: 13px; }
-.pp-cat2 { font-size: 12px; }
-.ap-card { padding: 8px 10px; }
-.ap-name { font-size: 12px; }
-.ap-meta { font-size: 11px; }
-.pp-portal, .ap-portal { width: 22px; height: 22px; }
-
-@media (max-width: 1100px) {
-  .wp-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }

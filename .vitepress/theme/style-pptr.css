@@ -1,0 +1,214 @@
+/* ===== 🎴 pptr 风格（基础 + 靛紫玻璃皮肤，四列） ===== */
+
+/* 基础结构 */
+.pp-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pp-cat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.pp-tag {
+  font-size: 16px;
+}
+
+.pp-cat-title {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.pp-portal {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.pp-cat-stats {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 84px;
+  padding: 8px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg);
+  text-align: center;
+  font-size: 12px;
+}
+
+.pp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.pp-name {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.pp-nature {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vp-c-brand-1);
+}
+
+.pp-cat2 {
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+.pp-sub {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--vp-c-text-3);
+}
+
+/* 皮肤覆盖：靛紫玻璃 */
+.result-card.wing-style-pptr {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  color: #fff;
+}
+
+.wing-style-pptr .result-title,
+.wing-style-pptr .result-sub {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.wing-style-pptr .style-switcher {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.wing-style-pptr .style-switcher button {
+  color: rgba(255, 255, 255, 0.85);
+}
+.wing-style-pptr .style-switcher button.active {
+  background: #fff;
+  color: #4a5dc9;
+}
+
+.wing-style-pptr .result-stats {
+  margin: 12px 0 16px;
+}
+.wing-style-pptr .stat {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(5px);
+}
+.wing-style-pptr .stat b {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.wing-style-pptr .stat span {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.wing-style-pptr .pp-cat-head {
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+}
+.wing-style-pptr .pp-cat-title {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.wing-style-pptr .pp-cat-stats {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.wing-style-pptr .pp-portal {
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.wing-style-pptr .pp-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wing-style-pptr .pp-card {
+  background: rgba(255, 255, 255, 0.14);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(5px);
+  color: #fff;
+}
+.wing-style-pptr .pp-card.collected {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.16));
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+}
+.wing-style-pptr .pp-card.deposited {
+  background: rgba(255, 176, 59, 0.22);
+  border-color: rgba(255, 176, 59, 0.55);
+}
+.wing-style-pptr .pp-card.notRedeemed {
+  background: rgba(186, 120, 255, 0.2);
+  border-color: rgba(186, 120, 255, 0.5);
+}
+.wing-style-pptr .pp-card.uncollected {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  opacity: 0.72;
+}
+
+.wing-style-pptr .pp-badge {
+  color: #fff;
+}
+.wing-style-pptr .pp-card.collected .pp-badge {
+  color: #eafff0;
+}
+.wing-style-pptr .pp-card.deposited .pp-badge {
+  color: #ffd9a3;
+}
+.wing-style-pptr .pp-card.notRedeemed .pp-badge {
+  color: #e6ccff;
+}
+.wing-style-pptr .pp-name {
+  color: #fff;
+}
+.wing-style-pptr .pp-nature {
+  color: #ffe27a;
+}
+.wing-style-pptr .pp-cat2 {
+  color: rgba(255, 255, 255, 0.9);
+}
+.wing-style-pptr .pp-sub {
+  color: #ffd36e;
+}
+
+@media (max-width: 1100px) {
+  .wing-style-pptr .pp-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .wing-style-pptr .pp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
