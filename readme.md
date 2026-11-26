@@ -3,7 +3,7 @@
 # koishi-plugin-wydashen-guangyi-query 🕊️
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
-[![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+[![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://npm-stat.com/charts.html?package=koishi-plugin-wydashen-guangyi-query)
 
 [![GitHub](https://img.shields.io/badge/GitHub-点我查看_Readme-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
 [![Gitee](https://img.shields.io/badge/Gitee-点我查看_Readme-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
