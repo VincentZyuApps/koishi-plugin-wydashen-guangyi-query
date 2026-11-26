@@ -2,6 +2,9 @@
 
 `koishi-plugin-wydashen-guangyi-query` 是一个 Koishi 聊天机器人插件，通过网易大神接口查询《光·遇》国服玩家的光翼收集情况，并支持多种渲染与转发方式。
 
+[![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+[![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+
 ## 功能特性
 
 - 🪽 光翼查询：输入角色短 ID，返回收集概览
@@ -12,13 +15,11 @@
 
 ## 安装
 
-在 Koishi 控制台「插件市场」搜索安装，或在 monorepo 中：
+在 Koishi 控制台「插件市场」或「依赖管理」搜索安装，或在 monorepo 中（使用 npm 也可以）：
 
 ```bash
 yarn add koishi-plugin-wydashen-guangyi-query
 ```
-
-> 本仓库使用 Yarn (Berry)，请勿使用 npm / pnpm 安装依赖。
 
 ## 指令一览
 
@@ -39,16 +40,23 @@ yarn add koishi-plugin-wydashen-guangyi-query
 
 机器人会返回该角色的光翼收集长图。
 
-## 主要配置
+## 效果预览
 
-- `backendUrl`：API 地址，默认 `https://cf-guangyi.vincentzyu233.cn`
-- 光翼映射表 URL：默认网易官方 JSON
-- 渲染引擎开关、图片类型（PNG / JPG）与质量
-- Puppeteer 自定义字体（LXGW 文楷）
-- QQ Markdown 按钮（Canvas / pptr / 教程）
+> 以下示例图直接引用插件仓库 main 分支的 GitHub raw 资源。
 
-## 相关
+**🎴 Puppeteer 渲染长图**
 
-- 在线查询：本站「光翼查询 / 衣柜查询」
-- API 文档：`/docs/api`
-- 获取 ID 教程：`/tutorial`
+<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_pptr.png" alt="Puppeteer 长图" loading="lazy" style="max-width:420px" />
+
+**🖥️ Canvas 出图**
+
+<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_canvas.png" alt="Canvas 出图" loading="lazy" style="max-width:420px" />
+
+**📄 OneBot 合并转发**
+
+<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/gen_image_forward.png" alt="合并转发" loading="lazy" style="max-width:420px" />
+
+**🔘 QQ Markdown 按钮**
+
+<img src="https://raw.githubusercontent.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query/main/doc/images/preview/qq_markdown_button.png" alt="QQ Markdown 按钮" loading="lazy" style="max-width:420px" />
+
