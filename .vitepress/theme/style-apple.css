@@ -63,8 +63,8 @@
 .ap-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 7px 12px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 16px;
   background: var(--vp-c-bg-elv);
@@ -90,11 +90,13 @@
 .ap-name {
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.2;
   word-break: break-all;
 }
 
 .ap-meta {
   font-size: 12px;
+  line-height: 1.2;
   color: var(--vp-c-text-3);
 }
 

@@ -40,7 +40,7 @@ defineProps<{
           <div class="wp-status">{{ w.statusText }}</div>
           <div class="wp-name">{{ w.name }}</div>
           <div class="wp-nature">{{ w.natureText }}</div>
-          <div v-if="w.subCategory" class="wp-sub">{{ w.subCategory }}</div>
+          <div class="wp-sub">{{ w.subCategory }}</div>
         </div>
       </div>
     </section>
