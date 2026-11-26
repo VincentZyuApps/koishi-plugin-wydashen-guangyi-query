@@ -1348,10 +1348,18 @@ __metadata:
   resolution: "koishi-plugin-wydashen-guangyi-query-docs@workspace:."
   dependencies:
     html-to-image: "npm:^1.11.13"
+    lxgw-wenkai-webfont: "npm:^1.7.0"
     vitepress: "npm:^1.6.4"
     vue: "npm:^3.5.13"
   languageName: unknown
   linkType: soft
+
+"lxgw-wenkai-webfont@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "lxgw-wenkai-webfont@npm:1.7.0"
+  checksum: 10c0/d286590ce98cefc1de7c800bbb3aa84e856545b72e5d767e24490db39d5fb864e6114bbad6c887f025c21689729117ba84e81981f850a024010d400501cf18ee
+  languageName: node
+  linkType: hard
 
 "magic-string@npm:^0.30.21":
   version: 0.30.21

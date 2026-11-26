@@ -22,7 +22,7 @@ export interface WingDisplayData extends WingData {
   isFromAPI: boolean
 }
 
-export type WingStyle = 'vitepress' | 'pptr' | 'apple'
+export type WingStyle = 'vitepress' | 'lxgw' | 'apple'
 
 // 分类固定顺序（稳定小数据，内联兜底）
 export const CATEGORY_ORDER: string[] = [

@@ -16,7 +16,7 @@ import LineSwitch from './LineSwitch.vue'
 import ExportActions from './ExportActions.vue'
 import StyleSwitcher from './StyleSwitcher.vue'
 import WingVitepress from './wing/WingVitepress.vue'
-import WingPptr from './wing/WingPptr.vue'
+import WingLxgw from './wing/WingLxgw.vue'
 import WingApple from './wing/WingApple.vue'
 
 const roleId = ref('')
@@ -32,8 +32,9 @@ const dataLoading = ref(true)
 const dataDegraded = ref(false)
 
 const STYLE_KEY = 'wgd:style'
+const savedStyle = localStorage.getItem(STYLE_KEY) as WingStyle | null
 const style = ref<WingStyle>(
-  (localStorage.getItem(STYLE_KEY) as WingStyle) || 'vitepress',
+  savedStyle === 'pptr' ? 'lxgw' : savedStyle || 'vitepress',
 )
 watch(style, (v) => {
   try {
@@ -45,8 +46,8 @@ watch(style, (v) => {
 
 const styleComp = computed(() =>
   markRaw(
-    style.value === 'pptr'
-      ? WingPptr
+    style.value === 'lxgw'
+      ? WingLxgw
       : style.value === 'apple'
         ? WingApple
         : WingVitepress,

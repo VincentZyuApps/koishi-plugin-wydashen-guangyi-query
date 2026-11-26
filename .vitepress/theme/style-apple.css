@@ -104,6 +104,8 @@
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 24px !important;
   color: #fff !important;
+  font-family: 'PingFang SC', '苹方-简', -apple-system, BlinkMacSystemFont,
+    'Helvetica Neue', sans-serif;
   background:
     radial-gradient(1100px 520px at 12% 8%, rgba(99, 102, 241, 0.55), transparent 60%),
     radial-gradient(900px 480px at 88% 18%, rgba(16, 185, 129, 0.45), transparent 62%),

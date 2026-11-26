@@ -6,7 +6,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', v: WingStyle): void }>()
 
 const opts: { key: WingStyle; label: string }[] = [
   { key: 'vitepress', label: '🪶 VitePress' },
-  { key: 'pptr', label: '🎴 pptr' },
+  { key: 'lxgw', label: 'LXGW' },
   { key: 'apple', label: '🍎 Apple' },
 ]
 </script>
