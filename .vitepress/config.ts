@@ -41,9 +41,5 @@ export default defineConfig({
     },
     outline: { level: [2, 3], label: '本页目录' },
     search: { provider: 'local' },
-    footer: {
-      message: '仅用于个人学习与查询，数据来自网易大神',
-      copyright: 'Powered by VitePress · © VincentZyu',
-    },
   },
 })

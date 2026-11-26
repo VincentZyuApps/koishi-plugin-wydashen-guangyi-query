@@ -1,5 +1,8 @@
 ---
 title: 衣柜查询
+aside: false
+outline: false
+class: query-page
 ---
 
 # 衣柜查询

@@ -5,9 +5,9 @@
   "type": "module",
   "packageManager": "yarn@4.5.3",
   "scripts": {
-    "dev": "vitepress dev .",
+    "dev": "vitepress dev . --port 61127",
     "build": "vitepress build .",
-    "preview": "vitepress preview ."
+    "preview": "vitepress preview . --port 61127"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -1,5 +1,8 @@
 ---
 title: 光翼查询
+aside: false
+outline: false
+class: query-page
 ---
 
 # 光翼查询

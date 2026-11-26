@@ -610,3 +610,48 @@
 .exporting .export-actions {
   display: none !important;
 }
+
+/* ===== 加宽 + 五列 + 高密度（覆盖） ===== */
+.query-page .VPDoc .container { max-width: 1440px; }
+.query-page .VPDoc .content,
+.query-page .VPDoc .content-container { max-width: none; }
+.query-page .vp-doc { padding-top: 4px; }
+
+.query-panel { max-width: 1400px; padding: 4px 20px 32px; }
+
+.result-card { padding: 16px; border-radius: 14px; }
+.result-head { margin-bottom: 12px; }
+.result-stats { gap: 8px; margin: 10px 0 14px; }
+.stat { min-width: 84px; padding: 8px 12px; }
+.stat b { font-size: 18px; }
+.stat span { font-size: 11px; }
+
+/* VitePress 风格：五列 + 紧凑 */
+.wp-categories { gap: 0; }
+.wp-cat { margin: 12px 0; }
+.wp-cat-head { gap: 6px; }
+.wp-portal { width: 20px; height: 20px; }
+.wp-cat-title { font-size: 14px; }
+.wp-cat-stats { font-size: 11px; }
+.wp-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.wp-card { padding: 6px 8px; border-radius: 8px; font-size: 12px; line-height: 1.25; }
+.wp-status { font-size: 11px; }
+.wp-name { margin: 1px 0; }
+.wp-nature { font-size: 11px; }
+.wp-sub { font-size: 11px; }
+
+/* pptr / apple 同步收紧 */
+.pp-categories, .ap-categories { gap: 14px; }
+.pp-grid, .ap-grid { gap: 6px; margin-top: 8px; }
+.pp-card { padding: 6px 8px; font-size: 12px; }
+.pp-badge { font-size: 12px; margin-bottom: 2px; }
+.pp-nature { font-size: 13px; }
+.pp-cat2 { font-size: 12px; }
+.ap-card { padding: 8px 10px; }
+.ap-name { font-size: 12px; }
+.ap-meta { font-size: 11px; }
+.pp-portal, .ap-portal { width: 22px; height: 22px; }
+
+@media (max-width: 1100px) {
+  .wp-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
