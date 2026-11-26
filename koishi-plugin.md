@@ -2,7 +2,7 @@
 
 [`koishi-plugin-wydashen-guangyi-query`](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query) 是一个 Koishi 聊天机器人插件，通过网易大神接口查询《光·遇》国服玩家的光翼收集情况，并支持多种渲染与转发方式。
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query) [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query) [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://npm-stat.com/charts.html?package=koishi-plugin-wydashen-guangyi-query)
 
 [![GitHub](https://img.shields.io/badge/GitHub-仓库主页-181717?logo=github&style=flat-square)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query) [![Gitee](https://img.shields.io/badge/Gitee-仓库主页-C71D23?logo=gitee&style=flat-square)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
 
