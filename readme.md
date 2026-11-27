@@ -5,12 +5,16 @@
 [![npm](https://img.shields.io/npm/v/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wydashen-guangyi-query)
 [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-wydashen-guangyi-query?style=flat-square)](https://npm-stat.com/charts.html?package=koishi-plugin-wydashen-guangyi-query)
 
-[![GitHub](https://img.shields.io/badge/GitHub-点我查看_Readme-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
-[![Gitee](https://img.shields.io/badge/Gitee-点我查看_Readme-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
+[![GitHub - Plugin](https://img.shields.io/badge/GitHub-插件主仓-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
+[![Gitee - Plugin](https://img.shields.io/badge/Gitee-插件主仓-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
+[![GitHub - Docs](https://img.shields.io/badge/GitHub-文档页面-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/wydashen-guangyi-query-vitepress-doc-page)
+[![Gitee - Docs](https://img.shields.io/badge/Gitee-文档页面-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/wydashen-guangyi-query-vitepress-doc-page)
 
 [![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_12378-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12378)
 [![awa群-zyu建的qq群](https://img.shields.io/badge/awa群_zyu建的qq群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
 [![光遇Bot群](https://img.shields.io/badge/光遇Bot群-475328908-D63A4D?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/oVxZoksppK)
+
+> 🌐 **在线交互式文档站 (GitHub Pages)**: [https://vincentzyuapps.github.io/wydashen-guangyi-query-vitepress-doc-page/](https://vincentzyuapps.github.io/wydashen-guangyi-query-vitepress-doc-page/)
 
 查询**光遇国服**玩家的**光翼（Winged Light）**获取情况，支持 **Puppeteer** 和 **@napi-rs/canvas** 双渲染引擎。
 
