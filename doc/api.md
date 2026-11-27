@@ -24,16 +24,12 @@ curl "https://cf-guangyi.vincentzyu233.cn/checkHealth"
 {
   "status": "ok",
   "code": 200,
-  "version": "0.5.0",
-  "timestamp": "2026-11-26T22:21:25.790975",
-  "cbg": {
-    "mode": "browser",
-    "logged_in": true
-  }
+  "version": "0.6.1",
+  "timestamp": "2026-11-26T22:21:25.790975"
 }
 ```
 
-`status` 为 `ok` / `degraded`；`cbg.mode` 为 `browser` / `frida`。
+`status` 为 `ok` / `degraded`，仅用于存活探活，不返回任何藏宝阁/Token 内部状态。
 
 ### 🪽 2. 查询光翼数据 ⭐
 
