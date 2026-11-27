@@ -44,14 +44,15 @@ export interface InventoryResponse {
   message?: string
 }
 
-const ICON_CACHE_VER = '2'
+// 构建时由 .vitepress/config.ts 的 vite.define 注入（格式 YYYYMMDD_HHmm，北京时间）
+declare const __BUILD_STAMP__: string
 
 export function iconUrl(icon: string, line: Line): string {
   if (!icon) return ''
   const marker = '/game_res/'
   const index = icon.indexOf(marker)
   if (index === -1) return icon
-  return `${LINES[line].base}/cbg-icon/${icon.slice(index + marker.length)}?v=${ICON_CACHE_VER}`
+  return `${LINES[line].base}/cbg-icon/${icon.slice(index + marker.length)}?timestamp=${__BUILD_STAMP__}`
 }
 
 export async function getJson<T>(url: string, timeout = 60000): Promise<T> {
