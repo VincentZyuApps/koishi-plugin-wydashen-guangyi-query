@@ -7,6 +7,7 @@
 
 [![GitHub - Plugin](https://img.shields.io/badge/GitHub-插件主仓-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/koishi-plugin-wydashen-guangyi-query)
 [![Gitee - Plugin](https://img.shields.io/badge/Gitee-插件主仓-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/koishi-plugin-wydashen-guangyi-query)
+<br>
 [![GitHub - Docs](https://img.shields.io/badge/GitHub-文档页面-181717?logo=github&style=for-the-badge)](https://github.com/VincentZyuApps/wydashen-guangyi-query-vitepress-doc-page)
 [![Gitee - Docs](https://img.shields.io/badge/Gitee-文档页面-C71D23?logo=gitee&style=for-the-badge)](https://gitee.com/vincent-zyu/wydashen-guangyi-query-vitepress-doc-page)
 
