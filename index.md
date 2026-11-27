@@ -11,7 +11,7 @@ hero:
       link: /light
     - theme: alt
       text: 👗 衣柜查询
-      link: /outfit
+      link: /inventory
     - theme: alt
       text: 📖 API 文档
       link: /docs/api

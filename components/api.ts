@@ -21,35 +21,37 @@ export interface LightResponse {
   error?: { message?: string }
 }
 
-export interface OutfitItem {
+export interface InventoryItem {
   id: string
   name: string
   season?: string
   icon?: string
 }
 
-export interface OutfitCategory {
+export interface InventoryCategory {
   key: string
   label: string
   count: number
-  items: OutfitItem[]
+  items: InventoryItem[]
 }
 
-export interface OutfitResponse {
+export interface InventoryResponse {
   success: boolean
   roleId?: string
   total?: number
   uniqueTotal?: number
-  categories?: OutfitCategory[]
+  categories?: InventoryCategory[]
   message?: string
 }
+
+const ICON_CACHE_VER = '2'
 
 export function iconUrl(icon: string, line: Line): string {
   if (!icon) return ''
   const marker = '/game_res/'
   const index = icon.indexOf(marker)
   if (index === -1) return icon
-  return `${LINES[line].base}/cbg-icon/${icon.slice(index + marker.length)}`
+  return `${LINES[line].base}/cbg-icon/${icon.slice(index + marker.length)}?v=${ICON_CACHE_VER}`
 }
 
 export async function getJson<T>(url: string, timeout = 60000): Promise<T> {

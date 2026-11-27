@@ -1,11 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import {
   getJson,
   iconUrl,
   LINES,
   type Line,
-  type OutfitResponse,
+  type InventoryResponse,
 } from './api'
 import {
   clearRecent,
@@ -17,13 +17,13 @@ import LineSwitch from './LineSwitch.vue'
 import ExportActions from './ExportActions.vue'
 import RecentQueries from './RecentQueries.vue'
 
-interface RecentOutfitEntry {
+interface RecentInventoryEntry {
   id: string
   line: Line
   savedAt: number
   total: number
   uniqueTotal: number
-  response: OutfitResponse
+  response: InventoryResponse
 }
 
 const RECENT_KEY = 'wgd:recent:outfit:v1'
@@ -33,9 +33,9 @@ const line = ref<Line>('direct')
 const loading = ref(false)
 const error = ref('')
 const role = ref('')
-const data = ref<OutfitResponse | null>(null)
+const data = ref<InventoryResponse | null>(null)
 const resultRef = ref<HTMLElement | null>(null)
-const recent = ref<RecentOutfitEntry[]>([])
+const recent = ref<RecentInventoryEntry[]>([])
 const fromCache = ref(false)
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -53,7 +53,7 @@ const recentItems = computed(() =>
 )
 
 onMounted(() => {
-  recent.value = loadRecent<RecentOutfitEntry>(RECENT_KEY)
+  recent.value = loadRecent<RecentInventoryEntry>(RECENT_KEY)
 })
 
 async function query() {
@@ -67,7 +67,7 @@ async function query() {
   }
   loading.value = true
   try {
-    const res = await getJson<OutfitResponse>(
+    const res = await getJson<InventoryResponse>(
       `${LINES[line.value].base}/queryCbgInv?id=${encodeURIComponent(id)}`,
     )
     if (!res.success) {
@@ -76,7 +76,7 @@ async function query() {
     role.value = res.roleId || id
     data.value = res
     fromCache.value = false
-    recent.value = pushRecent<RecentOutfitEntry>(RECENT_KEY, recent.value, {
+    recent.value = pushRecent<RecentInventoryEntry>(RECENT_KEY, recent.value, {
       id: role.value,
       line: line.value,
       savedAt: Date.now(),
@@ -113,7 +113,7 @@ function refresh() {
 }
 
 function onRemoveRecent(id: string) {
-  recent.value = removeRecent<RecentOutfitEntry>(RECENT_KEY, recent.value, id)
+  recent.value = removeRecent<RecentInventoryEntry>(RECENT_KEY, recent.value, id)
 }
 
 function onClearRecent() {
@@ -171,11 +171,11 @@ function onClearRecent() {
         <h3 class="category-title">
           {{ category.label }}（{{ category.count }}）
         </h3>
-        <div class="outfit-grid">
+        <div class="inventory-grid">
           <div
             v-for="item in category.items"
             :key="item.id"
-            class="outfit-item"
+            class="inventory-item"
           >
             <img
               v-if="item.icon"
@@ -194,7 +194,7 @@ function onClearRecent() {
     <ExportActions
       v-if="data"
       :target="resultRef"
-      :filename="`outfit-${role}`"
+      :filename="`inventory-${role}`"
     />
   </div>
 </template>

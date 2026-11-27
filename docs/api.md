@@ -21,9 +21,11 @@ curl "https://cf-guangyi.vincentzyu233.cn/checkHealth"
   "code": 200,
   "version": "0.5.0",
   "timestamp": "2026-11-27T10:00:00",
-  "cbg": { "mode": "browser", "logged_in": true }
+  "cbg": { "source_order": ["dashen"], "logged_in": true }
 }
 ```
+
+> `cbg.source_order` 为当前藏宝阁会话来源优先级（`dashen`=抓大神、`browser`=浏览器桥接）；`logged_in` 为 `true/false/null`（未知）。
 
 ## `GET /queryGuangyi?id=<短ID>`
 
@@ -66,6 +68,7 @@ curl "https://cf-guangyi.vincentzyu233.cn/queryCbgInv?id=37ec67d8-b55b-4cb3-b124
   "success": true,
   "roleId": "37ec67d8-b55b-4cb3-b124-b20b67a98a10",
   "server": "8000",
+  "source": "dashen",
   "timestamp": "2026-11-27T10:00:00",
   "total": 390,
   "uniqueTotal": 386,
@@ -98,7 +101,7 @@ curl "https://cf-guangyi.vincentzyu233.cn/queryCbgInv?id=37ec67d8-b55b-4cb3-b124
 | 状态码 | 说明 |
 | :--- | :--- |
 | 400 | 参数错误或使用了短 ID 查衣柜 |
-| 401 | Token / 藏宝阁会话失效 |
+| 401 | 光翼 Token 失效（`/queryGuangyi`） |
 | 404 | 未查询到衣柜数据 |
 | 429 | 超过公网限流（25 次/分钟/IP） |
-| 503 | 服务未就绪 |
+| 503 | 服务未就绪，或藏宝阁所有会话来源均不可用（`error: cbg_unavailable`） |

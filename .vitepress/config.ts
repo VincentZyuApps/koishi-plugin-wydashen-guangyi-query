@@ -19,7 +19,7 @@ export default defineConfig({
     },
     nav: [
       { text: '🪽 光翼查询', link: '/light' },
-      { text: '👗 衣柜查询', link: '/outfit' },
+      { text: '👗 衣柜查询', link: '/inventory' },
       { text: '🆔 获取国服玩家ID教程', link: '/tutorial' },
       { text: '📖 文档', link: '/docs/api' },
       { text: '🤖 Koishi插件', link: '/koishi-plugin' },

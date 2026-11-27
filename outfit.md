@@ -2,17 +2,13 @@
 title: 衣柜查询
 aside: false
 outline: false
-class: query-page
+editLink: false
+head:
+  - - meta
+    - http-equiv: refresh
+    - content: "0; url=/koishi-plugin-wydashen-guangyi-query/inventory"
 ---
 
 # 衣柜查询
 
-输入角色**原 ID（UUID）**，查询藏宝阁衣柜。暂不支持短 ID。
-
-<script setup>
-import OutfitQuery from './components/OutfitQuery.vue'
-</script>
-
-<ClientOnly>
-  <OutfitQuery />
-</ClientOnly>
+页面已迁移至 [衣柜查询（/inventory）](/inventory)。若未自动跳转，请点击链接。

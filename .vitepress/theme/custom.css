@@ -248,13 +248,13 @@
   font-size: 16px;
 }
 
-.outfit-grid {
+.inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 10px;
 }
 
-.outfit-item {
+.inventory-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -267,13 +267,13 @@
   font-size: 12px;
 }
 
-.outfit-item img {
+.inventory-item img {
   width: 52px;
   height: 52px;
   object-fit: contain;
 }
 
-.outfit-item span {
+.inventory-item span {
   line-height: 1.3;
   word-break: break-all;
   color: var(--vp-c-text-2);
